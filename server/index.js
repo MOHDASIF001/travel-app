@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { initDb } from './db.js';
 import { login, createAgent, changePassword, authenticateToken } from './auth.js';
 import pool from './db.js';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -127,7 +128,23 @@ app.delete('/api/admin/agents/:id', authenticateToken, async (req, res) => {
 });
 
 // Start Server
-initDb().then(() => {
+initDb().then(async () => {
+    // Seed Admin User
+    try {
+        const email = 'admin@itinerarypro.com';
+        const password = 'adminpassword123';
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const id = 'admin_1';
+
+        await pool.query(
+            'INSERT INTO users (id, email, password, role, company_name) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password)',
+            [id, email, hashedPassword, 'admin', 'ItineraryPro Admin']
+        );
+        console.log('Super Admin verified/created');
+    } catch (err) {
+        console.error('Error seeding admin:', err);
+    }
+
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
