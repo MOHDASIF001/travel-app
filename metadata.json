@@ -1,0 +1,7 @@
+{
+  "name": "ItineraryPro SaaS",
+  "description": "A high-fidelity travel itinerary builder for agents to generate professional, branded PDFs in minutes.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
