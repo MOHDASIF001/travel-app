@@ -12,7 +12,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { ChangePassword } from './components/ChangePassword';
 import { Layout, Palette, FileText, Printer, X, Save, Database, Upload, Plus, Trash2, MapPin, Tag, LayoutTemplate, Navigation2, Clock, CheckCircle2, ShieldAlert, LogOut, Key } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://travel-app-production-24d5.up.railway.app/api';
 
 const App: React.FC = () => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('itinerary_token'));
