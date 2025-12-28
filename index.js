@@ -137,7 +137,7 @@ initDb().then(async () => {
         const id = 'admin_1';
 
         await pool.query(
-            'INSERT INTO users (id, email, password, role, company_name) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE email = email',
+            'INSERT INTO users (id, email, password, role, company_name) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password)',
             [id, email, hashedPassword, 'admin', 'ItineraryPro Admin']
         );
         console.log('Super Admin verified/created');
