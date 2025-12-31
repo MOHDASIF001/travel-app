@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Plus, Trash2, Hotel as HotelIcon, Star, Save, Image as ImageIcon, X, MapPin, Upload, Pencil, Check, Heart } from 'lucide-react';
 import { Button } from './Button';
 import { Hotel, Branding } from '../types';
+import { compressImage } from '../utils';
 
 interface HotelManagerProps {
   hotels: Hotel[];
@@ -46,11 +47,12 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
 
     Array.from(files).forEach(file => {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64 = reader.result as string;
+        const compressed = await compressImage(base64);
         setEditingHotel(prev => ({
           ...prev!,
-          images: [...(prev!.images || []), base64]
+          images: [...(prev!.images || []), compressed]
         }));
       };
       reader.readAsDataURL(file as any);
@@ -165,20 +167,20 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Hotel Display Name</label>
-                  <input 
-                    type="text" 
-                    value={editingHotel.name} 
-                    onChange={e => setEditingHotel({...editingHotel, name: e.target.value})} 
-                    className="w-full p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-black focus:border-rose-500 outline-none transition-all uppercase" 
+                  <input
+                    type="text"
+                    value={editingHotel.name}
+                    onChange={e => setEditingHotel({ ...editingHotel, name: e.target.value })}
+                    className="w-full p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-black focus:border-rose-500 outline-none transition-all uppercase"
                     placeholder="e.g. Radisson Blu"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Region / Destination</label>
-                  <select 
-                    value={editingHotel.category} 
-                    onChange={e => setEditingHotel({...editingHotel, category: e.target.value})} 
+                  <select
+                    value={editingHotel.category}
+                    onChange={e => setEditingHotel({ ...editingHotel, category: e.target.value })}
                     className="w-full p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-black focus:border-rose-500 outline-none transition-all uppercase bg-slate-50"
                   >
                     <option value="">Select Region</option>
@@ -192,11 +194,11 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Full Address / Landmark</label>
                   <div className="relative">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                      type="text" 
-                      value={editingHotel.location} 
-                      onChange={e => setEditingHotel({...editingHotel, location: e.target.value})} 
-                      className="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold focus:border-rose-500 outline-none transition-all" 
+                    <input
+                      type="text"
+                      value={editingHotel.location}
+                      onChange={e => setEditingHotel({ ...editingHotel, location: e.target.value })}
+                      className="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold focus:border-rose-500 outline-none transition-all"
                       placeholder="e.g. Near Dal Lake, Gate No. 1"
                     />
                   </div>
@@ -205,9 +207,9 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Star Category</label>
                   <div className="flex gap-2 bg-slate-50 p-2 rounded-2xl border-2 border-slate-100">
                     {[1, 2, 3, 4, 5].map(s => (
-                      <button 
-                        key={s} 
-                        onClick={() => setEditingHotel({...editingHotel, stars: s})}
+                      <button
+                        key={s}
+                        onClick={() => setEditingHotel({ ...editingHotel, stars: s })}
                         className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${editingHotel.stars === s ? 'bg-rose-600 text-white shadow-lg' : 'hover:bg-white text-slate-400'}`}
                       >
                         {s}★
@@ -228,11 +230,10 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                         <button
                           key={amenity}
                           onClick={() => toggleAmenity(amenity)}
-                          className={`flex items-center gap-2 p-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-2 ${
-                            isActive 
-                              ? 'bg-rose-600 border-rose-600 text-white shadow-lg' 
-                              : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
-                          }`}
+                          className={`flex items-center gap-2 p-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border-2 ${isActive
+                            ? 'bg-rose-600 border-rose-600 text-white shadow-lg'
+                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
+                            }`}
                         >
                           <div className={`w-4 h-4 rounded-full flex items-center justify-center border ${isActive ? 'bg-white text-rose-600 border-white' : 'border-slate-200'}`}>
                             {isActive && <Check className="w-3 h-3" />}
@@ -247,15 +248,15 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Custom Amenities</label>
                   <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={newAmenity} 
+                    <input
+                      type="text"
+                      value={newAmenity}
                       onChange={e => setNewAmenity(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addManualAmenity())}
-                      className="flex-1 p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500" 
+                      className="flex-1 p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500"
                       placeholder="Type unique amenity..."
                     />
-                    <Button onClick={addManualAmenity} type="button" className="px-6 rounded-2xl"><Plus className="w-5 h-5"/></Button>
+                    <Button onClick={addManualAmenity} type="button" className="px-6 rounded-2xl"><Plus className="w-5 h-5" /></Button>
                   </div>
                   <div className="flex flex-wrap gap-2 min-h-[40px] p-4 bg-slate-50 rounded-[24px] border-2 border-dashed border-slate-200">
                     {editingHotel.amenities?.length === 0 && <span className="text-[10px] font-bold text-slate-300 uppercase italic">No amenities selected yet</span>}
@@ -277,27 +278,27 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[3px]">Property Photographs</label>
                   <span className="text-[9px] font-bold text-slate-300 uppercase italic">The first image is your cover photo</span>
                 </div>
-                <div 
+                <div
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full py-12 border-4 border-dashed border-slate-200 rounded-[32px] flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 hover:bg-rose-50 transition-all group"
                 >
                   <Upload className="w-12 h-12 text-slate-300 group-hover:text-rose-500 mb-4 transition-colors" />
                   <span className="text-xs font-black text-slate-400 uppercase tracking-widest group-hover:text-rose-600">Click to Upload Images</span>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleImageUpload} 
-                    multiple 
-                    accept="image/*" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    multiple
+                    accept="image/*"
+                    className="hidden"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
                   {editingHotel.images?.map((img, i) => (
                     <div key={i} className={`relative aspect-video rounded-3xl overflow-hidden group border-4 transition-all duration-300 ${i === 0 ? 'border-rose-500 ring-4 ring-rose-500/20' : 'border-white hover:border-slate-200'}`}>
                       <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover" />
-                      
+
                       {i === 0 && (
                         <div className="absolute top-3 left-3 bg-rose-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
                           <Heart className="w-3 h-3 fill-current" /> Cover Photo
@@ -306,14 +307,14 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
 
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
                         {i !== 0 && (
-                          <button 
+                          <button
                             onClick={() => setAsCover(i)}
                             className="bg-white text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-xl flex items-center gap-2"
                           >
                             <Star className="w-4 h-4" /> Set as Cover
                           </button>
                         )}
-                        <button 
+                        <button
                           onClick={() => removeImage(i)}
                           className="bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl flex items-center gap-2"
                         >
@@ -340,11 +341,11 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {hotels.length === 0 && !editingHotel && (
-           <div className="col-span-full py-40 text-center bg-white rounded-[40px] border-4 border-dashed border-slate-200">
-              <HotelIcon className="w-20 h-20 mx-auto text-slate-100 mb-8" />
-              <h3 className="text-3xl font-black text-slate-300 uppercase tracking-tighter">No Properties Registered</h3>
-              <Button onClick={startNew} className="mt-8 px-12 h-16 shadow-xl rounded-2xl text-lg">Start Building Database</Button>
-           </div>
+          <div className="col-span-full py-40 text-center bg-white rounded-[40px] border-4 border-dashed border-slate-200">
+            <HotelIcon className="w-20 h-20 mx-auto text-slate-100 mb-8" />
+            <h3 className="text-3xl font-black text-slate-300 uppercase tracking-tighter">No Properties Registered</h3>
+            <Button onClick={startNew} className="mt-8 px-12 h-16 shadow-xl rounded-2xl text-lg">Start Building Database</Button>
+          </div>
         )}
         {hotels.map(hotel => (
           <div key={hotel.id} className="bg-white rounded-[32px] border-2 border-slate-100 overflow-hidden hover:border-slate-900 transition-all duration-500 group flex flex-col">
@@ -355,12 +356,12 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                 <div className="w-full h-full flex items-center justify-center text-slate-200"><ImageIcon className="w-16 h-16 opacity-10" /></div>
               )}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                    <button onClick={() => setEditingHotel(hotel)} className="w-12 h-12 bg-white text-slate-900 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-xl">
-                       <Pencil className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => deleteHotel(hotel.id)} className="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center hover:bg-red-700 transition-all shadow-xl">
-                       <Trash2 className="w-5 h-5" />
-                    </button>
+                <button onClick={() => setEditingHotel(hotel)} className="w-12 h-12 bg-white text-slate-900 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-xl">
+                  <Pencil className="w-5 h-5" />
+                </button>
+                <button onClick={() => deleteHotel(hotel.id)} className="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center hover:bg-red-700 transition-all shadow-xl">
+                  <Trash2 className="w-5 h-5" />
+                </button>
               </div>
             </div>
             <div className="p-8 flex-1 flex flex-col">
@@ -370,21 +371,21 @@ export const HotelManager: React.FC<HotelManagerProps> = ({ hotels, branding, on
                   {[...Array(hotel.stars)].map((_, i) => <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />)}
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold mb-8">
                 <MapPin className="w-4 h-4 text-rose-500" />
                 <span className="truncate">{hotel.category}</span>
               </div>
-              
+
               <div className="mt-auto grid grid-cols-2 gap-2">
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Images</span>
-                    <span className="text-xl font-black text-slate-900">{hotel.images?.length || 0}</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Features</span>
-                    <span className="text-xl font-black text-slate-900">{hotel.amenities?.length || 0}</span>
-                  </div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Images</span>
+                  <span className="text-xl font-black text-slate-900">{hotel.images?.length || 0}</span>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Features</span>
+                  <span className="text-xl font-black text-slate-900">{hotel.amenities?.length || 0}</span>
+                </div>
               </div>
             </div>
           </div>

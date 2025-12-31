@@ -24,7 +24,7 @@ export const ChangePassword: React.FC<ChangePasswordProps> = ({ token, primaryCo
         setLoading(true);
         setError('');
         try {
-            const response = await fetch('http://localhost:5000/api/change-password', {
+            const response = await fetch('https://travel-app-production-24d5.up.railway.app/api/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -23,7 +23,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ token, primaryColor }) =
 
     const fetchAgents = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/admin/agents', {
+            const response = await fetch('https://travel-app-production-24d5.up.railway.app/api/admin/agents', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -42,7 +42,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ token, primaryColor }) =
         setLoading(true);
         setError('');
         try {
-            const response = await fetch('http://localhost:5000/api/create-agent', {
+            const response = await fetch('https://travel-app-production-24d5.up.railway.app/api/create-agent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ token, primaryColor }) =
     const handleDeleteAgent = async (id: string) => {
         if (!confirm('Are you sure you want to delete this agent and all their data?')) return;
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/agents/${id}`, {
+            const response = await fetch(`https://travel-app-production-24d5.up.railway.app/api/admin/agents/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

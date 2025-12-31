@@ -3,14 +3,14 @@ import { Branding, ItineraryData, Hotel } from './types';
 
 export const DEFAULT_BRANDING: Branding = {
   logoUrl: '',
-  primaryColor: '#D31A1A', 
-  secondaryColor: '#300000', 
-  accentColor: '#fbbf24', 
+  primaryColor: '#D31A1A',
+  secondaryColor: '#300000',
+  accentColor: '#fbbf24',
   headingColor: '#FFFFFF',
   subHeadingColor: '#000000',
   textColor: '#111111',
   iconColor: '#D31A1A',
-  
+
   // Specific controls for high-fidelity PDF
   exploreTextColor: '#FFD700',
   destinationTextColor: '#FFFFFF',
@@ -23,6 +23,7 @@ export const DEFAULT_BRANDING: Branding = {
 
   companyName: 'Deenxconsultancy',
   address: 'New Delhi, India',
+  officeLocations: ['Srinagar', 'Delhi', 'Dubai'],
   phone: '+91 9667266672',
   whatsapp: '+91 9667266672',
   helpline: '+91 9667266672',
@@ -43,6 +44,39 @@ export const DEFAULT_BRANDING: Branding = {
   savedDayTemplates: [
     { id: '1', title: 'Arrival & Local Sightseeing', description: 'Upon arrival at the Airport, meet our representative and drive to hotel. Rest and later visit Mughal Gardens, Nishat and Shalimar. Enjoy a Shikara ride in the evening.', distance: '15 km', travelTime: '45 mins' },
     { id: '2', title: 'Srinagar to Gulmarg Excursion', description: 'After breakfast, drive to Gulmarg. Enjoy the Gondola ride and the scenic beauty of the Meadow of Flowers. Return to Srinagar in the evening.', distance: '52 km', travelTime: '2 hours' }
+  ],
+  savedOverviews: [
+    { title: 'Kashmir Welcome', content: 'Rightly called as the "Paradise on Earth" Kashmir bestows its visitors the view of pristine beauty of serene lakes, chinar trees, magnificent valleys and friendly people.' }
+  ],
+  defaultCoverImage: 'https://images.unsplash.com/photo-1598305371124-42ad188d59ee?w=800',
+  masterCoverImages: [
+    'https://images.unsplash.com/photo-1598305371124-42ad188d59ee?w=800',
+    'https://images.unsplash.com/photo-1566833925203-820508b58435?w=800',
+    'https://images.unsplash.com/photo-1621252179027-94459d278660?w=800',
+    'https://images.unsplash.com/photo-1596417600803-34e00501166a?w=800'
+  ],
+  roomTypes: ['Standard Room', 'Deluxe Room', 'Super Deluxe', 'Premium Room', 'Luxury Suite', 'Family Room'],
+  defaultInclusions: [
+    'Traditional Welcome Drink on Arrival',
+    'Accommodation on Double Sharing',
+    'Daily Breakfast & Dinner in Hotel/Houseboat',
+    'All Sightseeing as per Itinerary',
+    'Private Car for all Transfers (Etios/Innova)',
+    '1 Hour Shikara Ride in Dal Lake',
+    'Toll taxes, Parking, and Driver Allowance',
+    'GST and all applicable taxes'
+  ],
+  defaultExclusions: [
+    'Airfare / Train fare',
+    'Lunch and Personal Expenses',
+    'Entry Tickets to Mughal Gardens',
+    'Gondola Ride Tickets in Gulmarg',
+    'Pony Rides in Pahalgam/Gulmarg',
+    'Medical Insurrence'
+  ],
+  defaultSupplementCosts: [
+    'Innova/Xylo Upgrade: 1,500/- per day',
+    'Kashmiri Wazwan Meal: 800/- per person'
   ]
 };
 
@@ -55,8 +89,8 @@ export const MASTER_HOTELS: Hotel[] = [
     category: 'Srinagar',
     amenities: ['Welcome Drink', 'Daily Breakfast & Dinner', 'Wi-Fi', 'Daily Housekeeping', '24-hour Room Service', 'Mineral Water', 'Electric/Woollen Blanket'],
     images: [
-      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800', 
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400', 
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
       'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400',
       'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400'
     ]
@@ -69,7 +103,7 @@ export const MASTER_HOTELS: Hotel[] = [
     category: 'Pahalgam',
     amenities: ['Welcome Drink', 'Daily Breakfast & Dinner', 'Wi-Fi', 'Daily Housekeeping', 'Refrigerator', 'Mineral Water', '24-hour Room Service', 'Bonfire'],
     images: [
-      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800', 
+      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800',
       'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400',
       'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400',
       'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400'
@@ -83,7 +117,7 @@ export const MASTER_HOTELS: Hotel[] = [
     category: 'Houseboat',
     amenities: ['Welcome Drink', 'Daily Breakfast & Dinner', 'Wi-Fi', 'Refrigerator', 'Mineral Water', 'Bathtub', 'Barbeque'],
     images: [
-      'https://images.unsplash.com/photo-1559599141-3816a0b3f1e3?w=800', 
+      'https://images.unsplash.com/photo-1559599141-3816a0b3f1e3?w=800',
       'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=400',
       'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400',
       'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400'
@@ -95,16 +129,11 @@ export const MOCK_ITINERARY: ItineraryData = {
   id: '1',
   clientName: 'Valued Traveler',
   packageName: 'MAGNIFICENT KASHMIR TOUR',
-  destinations: 'Srinagar, Gulmarg, Pahalgam, Sonmarg',
   duration: '4N/5D',
   packageType: 'Premium package',
-  travelDates: '23 Dec 2025 - 27 Dec 2025',
   overview: 'Rightly called as the "Paradise on Earth" Kashmir bestows its visitors the view of pristine beauty of serene lakes, chinar trees, magnificent valleys and friendly people. This tour package has been specifically designed to offer you a feel of being in heaven with comfortable accommodation and sightseeing of the valley. Your journey will embark from Srinagar and will be followed by different tours as per your package.',
   coverImages: [
-    'https://images.unsplash.com/photo-1598305371124-42ad188d59ee?w=800',
-    'https://images.unsplash.com/photo-1566833925203-820508b58435?w=800',
-    'https://images.unsplash.com/photo-1621252179027-94459d278660?w=800',
-    'https://images.unsplash.com/photo-1596417600803-34e00501166a?w=800'
+    'https://images.unsplash.com/photo-1598305371124-42ad188d59ee?w=800'
   ],
   days: [
     {
@@ -157,6 +186,7 @@ export const MOCK_ITINERARY: ItineraryData = {
     perAdultPrice: '18,500/-',
     perChildPrice: '0/-',
     totalCost: '37,000/-',
+    roomType: 'Deluxe Room',
     nightBreakup: [
       { destination: 'Srinagar', nights: 2 },
       { destination: 'Pahalgam', nights: 1 },

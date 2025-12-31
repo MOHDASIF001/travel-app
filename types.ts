@@ -35,13 +35,21 @@ export interface Branding {
   savedOverviews: { title: string; content: string }[];
   overviewTitleColor?: string;
   overviewTextColor?: string;
+  address: string;
+  // Master Data
+  defaultCoverImage: string;
+  masterCoverImages: string[];
+  roomTypes: string[];
+  defaultInclusions: string[];
+  defaultExclusions: string[];
+  defaultSupplementCosts: string[];
 }
 
 export interface DayPlan {
   id: string;
   title: string;
   description: string;
-  date?: string;
+  date: string;
   distance?: string;
   travelTime?: string;
 }
@@ -64,10 +72,8 @@ export interface ItineraryData {
   id: string;
   clientName: string;
   packageName: string;
-  destinations: string;
   duration: string;
   packageType: string;
-  travelDates: string;
   overview: string;
   coverImages: string[];
   days: DayPlan[];
@@ -84,6 +90,7 @@ export interface ItineraryData {
     perAdultPrice: string;
     perChildPrice: string;
     totalCost: string;
+    roomType: string;
     nightBreakup: { destination: string; nights: number }[];
   };
   inclusions: string[];

@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
+import { compressImage } from './utils';
 import { Branding, ItineraryData, Hotel } from './types';
 import { DEFAULT_BRANDING, MOCK_ITINERARY, MASTER_HOTELS } from './constants';
 import { Dashboard } from './components/Dashboard';
@@ -10,7 +10,7 @@ import { Button } from './components/Button';
 import { Login } from './components/Login';
 import { AdminPanel } from './components/AdminPanel';
 import { ChangePassword } from './components/ChangePassword';
-import { Layout, Palette, FileText, Printer, X, Save, Database, Upload, Plus, Trash2, MapPin, Tag, LayoutTemplate, Navigation2, Clock, CheckCircle2, ShieldAlert, LogOut, Key } from 'lucide-react';
+import { Layout, Palette, FileText, Printer, X, Save, Database, Upload, Plus, Trash2, MapPin, Tag, LayoutTemplate, Navigation2, Clock, CheckCircle2, ShieldAlert, LogOut, Key, Image as ImageIcon, ImagePlus } from 'lucide-react';
 
 const API_BASE = 'https://travel-app-production-24d5.up.railway.app/api';
 
@@ -28,6 +28,7 @@ const App: React.FC = () => {
   const [newDayTemplate, setNewDayTemplate] = useState({ title: '', description: '', distance: '', travelTime: '' });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const defaultCoverInputRef = useRef<HTMLInputElement>(null);
 
   // Auth Handling
   const handleLogin = (token: string, user: any) => {
@@ -156,13 +157,11 @@ const App: React.FC = () => {
       id: `itinerary_${Date.now()}`,
       clientName: '',
       packageName: '',
-      destinations: '',
       duration: '',
       packageType: branding.packageCategories[0] || 'Standard Package',
-      travelDates: '',
       overview: '',
-      coverImages: ['', '', '', ''],
-      days: [{ id: `day_1_${Date.now()}`, title: 'Arrival', description: '', distance: '', travelTime: '' }],
+      coverImages: branding.masterCoverImages?.slice(0, 4) || [],
+      days: [{ id: `day_1_${Date.now()}`, title: 'Arrival', description: '', distance: '', travelTime: '', date: '' }],
       selectedHotels: [],
       pricing: {
         totalPax: 0,
@@ -176,6 +175,7 @@ const App: React.FC = () => {
         perAdultPrice: '',
         perChildPrice: '',
         totalCost: 'Price on Request',
+        roomType: branding.roomTypes?.[0] || 'Standard Room',
         nightBreakup: []
       },
       inclusions: [],
@@ -217,14 +217,33 @@ const App: React.FC = () => {
     await saveBrandingToServer(updated);
   };
 
+  const handleMasterGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        const compressed = await compressImage(base64String);
+        handleUpdateBranding({
+          ...branding,
+          masterCoverImages: [...(branding.masterCoverImages || []), compressed],
+          defaultCoverImage: branding.defaultCoverImage || compressed
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64String = reader.result as string;
-        setLogoPreview(base64String);
-        handleUpdateBranding({ ...branding, logoUrl: base64String });
+        // Logo usually needs better quality and smaller dimensions
+        const compressed = await compressImage(base64String, 500, 500, 50000);
+        setLogoPreview(compressed);
+        handleUpdateBranding({ ...branding, logoUrl: compressed });
       };
       reader.readAsDataURL(file);
     }
@@ -259,6 +278,30 @@ const App: React.FC = () => {
     if (!newItem.policy.trim()) return;
     handleUpdateBranding({ ...branding, cancellationPolicy: [...(branding.cancellationPolicy || []), newItem.policy.trim()] });
     setNewItem({ ...newItem, policy: '' });
+  };
+
+  const addRoomType = () => {
+    if (!(newItem as any).roomType?.trim()) return;
+    handleUpdateBranding({ ...branding, roomTypes: [...(branding.roomTypes || []), (newItem as any).roomType.trim()] });
+    setNewItem({ ...newItem, roomType: '' } as any);
+  };
+
+  const addMasterInclusion = () => {
+    if (!(newItem as any).inclusion?.trim()) return;
+    handleUpdateBranding({ ...branding, defaultInclusions: [...(branding.defaultInclusions || []), (newItem as any).inclusion.trim()] });
+    setNewItem({ ...newItem, inclusion: '' } as any);
+  };
+
+  const addMasterExclusion = () => {
+    if (!(newItem as any).exclusion?.trim()) return;
+    handleUpdateBranding({ ...branding, defaultExclusions: [...(branding.defaultExclusions || []), (newItem as any).exclusion.trim()] });
+    setNewItem({ ...newItem, exclusion: '' } as any);
+  };
+
+  const addMasterSupplement = () => {
+    if (!(newItem as any).supplement?.trim()) return;
+    handleUpdateBranding({ ...branding, defaultSupplementCosts: [...(branding.defaultSupplementCosts || []), (newItem as any).supplement.trim()] });
+    setNewItem({ ...newItem, supplement: '' } as any);
   };
 
   const addDayTemplate = () => {
@@ -301,35 +344,35 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {showSidebar && (
-        <aside className="no-print fixed left-0 top-0 bottom-0 w-20 md:w-64 bg-slate-900 text-slate-400 flex flex-col z-50">
-          <div className="p-8 flex items-center gap-3 text-white border-b border-white/5">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: branding.primaryColor }}>
-              <Layout className="w-6 h-6 text-white" />
+        <aside className="no-print fixed top-0 left-0 right-0 md:bottom-0 h-16 md:h-full w-full md:w-64 bg-slate-900 text-slate-400 flex flex-row md:flex-col z-50 shadow-xl md:shadow-none border-b md:border-b-0 border-white/5">
+          <div className="px-4 md:p-8 flex items-center gap-3 text-white border-b-0 md:border-b border-r md:border-r-0 border-white/5 shrink-0">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shrink-0" style={{ backgroundColor: branding.primaryColor }}>
+              <Layout className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-            <span className="font-black text-2xl tracking-tighter hidden md:inline">Itinerary<span style={{ color: branding.primaryColor }}>Pro</span></span>
+            <span className="font-black text-lg md:text-2xl tracking-tighter hidden sm:inline">Itinerary<span style={{ color: branding.primaryColor }}>Pro</span></span>
           </div>
 
-          <nav className="flex-1 py-8 px-4 space-y-3">
+          <nav className="flex-1 flex flex-row md:flex-col items-center md:items-stretch px-2 md:px-4 space-x-1 md:space-x-0 md:space-y-3 overflow-x-auto no-scrollbar py-0 md:py-8">
             {user?.role === 'admin' ? (
-              <button onClick={() => setView('admin')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-[2px] ${view === 'admin' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+              <button onClick={() => setView('admin')} className={`flex md:w-full items-center gap-4 px-4 md:px-5 py-3 md:py-4 rounded-xl md:rounded-2xl transition-all font-black uppercase text-[10px] tracking-[1px] md:tracking-[2px] whitespace-nowrap ${view === 'admin' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
                 <ShieldAlert className="w-5 h-5 shrink-0" />
                 <span className="hidden md:inline">User Manager</span>
               </button>
             ) : (
               <>
-                <button onClick={() => setView('dashboard')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-[2px] ${view === 'dashboard' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+                <button onClick={() => setView('dashboard')} className={`flex md:w-full items-center gap-4 px-4 md:px-5 py-3 md:py-4 rounded-xl md:rounded-2xl transition-all font-black uppercase text-[10px] tracking-[1px] md:tracking-[2px] whitespace-nowrap ${view === 'dashboard' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
                   <Layout className="w-5 h-5 shrink-0" />
                   <span className="hidden md:inline">Dashboard</span>
                 </button>
-                <button onClick={() => setView('hotels')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-[2px] ${view === 'hotels' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+                <button onClick={() => setView('hotels')} className={`flex md:w-full items-center gap-4 px-4 md:px-5 py-3 md:py-4 rounded-xl md:rounded-2xl transition-all font-black uppercase text-[10px] tracking-[1px] md:tracking-[2px] whitespace-nowrap ${view === 'hotels' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
                   <Database className="w-5 h-5 shrink-0" />
-                  <span className="hidden md:inline">Hotels Master</span>
+                  <span className="hidden md:inline">Hotels</span>
                 </button>
-                <button onClick={handleCreateNew} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-[2px] ${view === 'builder' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+                <button onClick={handleCreateNew} className={`flex md:w-full items-center gap-4 px-4 md:px-5 py-3 md:py-4 rounded-xl md:rounded-2xl transition-all font-black uppercase text-[10px] tracking-[1px] md:tracking-[2px] whitespace-nowrap ${view === 'builder' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
                   <FileText className="w-5 h-5 shrink-0" />
-                  <span className="hidden md:inline">Create Trip</span>
+                  <span className="hidden md:inline">Create</span>
                 </button>
-                <button onClick={() => setView('settings')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-[2px] ${view === 'settings' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+                <button onClick={() => setView('settings')} className={`flex md:w-full items-center gap-4 px-4 md:px-5 py-3 md:py-4 rounded-xl md:rounded-2xl transition-all font-black uppercase text-[10px] tracking-[1px] md:tracking-[2px] whitespace-nowrap ${view === 'settings' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white'}`}>
                   <Palette className="w-5 h-5 shrink-0" />
                   <span className="hidden md:inline">Settings</span>
                 </button>
@@ -337,14 +380,14 @@ const App: React.FC = () => {
             )}
           </nav>
 
-          <div className="p-4 border-t border-white/5 space-y-2">
+          <div className="px-2 md:p-4 border-t-0 md:border-t border-l md:border-l-0 border-white/5 flex flex-row md:flex-col gap-1 md:gap-2 shrink-0">
             {user?.role !== 'admin' && (
-              <button onClick={() => setShowPasswordModal(true)} className="w-full flex items-center gap-4 px-5 py-3 rounded-xl hover:bg-white/5 transition-all font-bold text-[10px] uppercase tracking-widest text-slate-500 hover:text-white">
+              <button onClick={() => setShowPasswordModal(true)} className="flex md:w-full items-center gap-3 md:gap-4 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl hover:bg-white/5 transition-all font-bold text-[10px] uppercase tracking-widest text-slate-500 hover:text-white whitespace-nowrap">
                 <Key className="w-4 h-4" />
                 <span className="hidden md:inline">Security</span>
               </button>
             )}
-            <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-3 rounded-xl hover:bg-rose-500/10 transition-all font-bold text-[10px] uppercase tracking-widest text-slate-500 hover:text-rose-500">
+            <button onClick={handleLogout} className="flex md:w-full items-center gap-3 md:gap-4 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl hover:bg-rose-500/10 transition-all font-bold text-[10px] uppercase tracking-widest text-slate-500 hover:text-rose-500 whitespace-nowrap">
               <LogOut className="w-4 h-4" />
               <span className="hidden md:inline">Logout</span>
             </button>
@@ -352,7 +395,7 @@ const App: React.FC = () => {
         </aside>
       )}
 
-      <main className={`flex-1 ${view !== 'preview' ? 'ml-20 md:ml-64' : ''}`}>
+      <main className={`flex-1 ${view !== 'preview' ? 'pt-16 md:pt-0 md:ml-64' : ''}`}>
         {view === 'admin' && user?.role === 'admin' && (
           <AdminPanel token={token!} primaryColor={branding.primaryColor} />
         )}
@@ -423,6 +466,53 @@ const App: React.FC = () => {
                     )}
                     <input type="file" ref={fileInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
                   </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[4px]">Master Cover Gallery</label>
+                    <button
+                      onClick={() => defaultCoverInputRef.current?.click()}
+                      className="flex items-center gap-2 bg-rose-500 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 transition-colors shadow-lg shadow-rose-200"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Photo
+                    </button>
+                  </div>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest italic mb-4">Manage official agency photos. The first image will be the system default.</p>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {branding.masterCoverImages?.map((img, idx) => (
+                      <div key={idx} className="group relative aspect-video rounded-2xl overflow-hidden border-2 border-slate-100 bg-white shadow-sm hover:border-rose-500 transition-all">
+                        <img src={img} className="w-full h-full object-cover" alt={`Master ${idx + 1}`} />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-all">
+                          <button
+                            onClick={() => {
+                              const newImgs = branding.masterCoverImages.filter((_, i) => i !== idx);
+                              handleUpdateBranding({
+                                ...branding,
+                                masterCoverImages: newImgs,
+                                defaultCoverImage: idx === 0 ? (newImgs[0] || '') : branding.defaultCoverImage
+                              });
+                            }}
+                            className="bg-white/20 hover:bg-rose-500 backdrop-blur-md p-2 rounded-xl text-white transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          {idx === 0 && (
+                            <span className="absolute top-2 left-2 bg-rose-500 text-white text-[7px] font-black uppercase px-2 py-1 rounded-lg">Default</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      onClick={() => defaultCoverInputRef.current?.click()}
+                      className="aspect-video border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-rose-500 hover:bg-rose-50 transition-all group text-slate-300"
+                    >
+                      <ImagePlus className="w-8 h-8 group-hover:text-rose-500 mb-1" />
+                      <span className="text-[8px] font-black uppercase tracking-widest">Add New</span>
+                    </div>
+                  </div>
+                  <input type="file" ref={defaultCoverInputRef} onChange={handleMasterGalleryUpload} accept="image/*" className="hidden" />
                 </div>
 
                 <div className="space-y-6">
@@ -704,6 +794,82 @@ const App: React.FC = () => {
                         <MapPin className="w-3 h-3" />
                         {loc}
                         <button onClick={() => handleUpdateBranding({ ...branding, locations: branding.locations.filter(l => l !== loc) })} className="text-white/40 hover:text-white"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white p-8 rounded-[40px] border-2 border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Database className="w-5 h-5 text-rose-500" />
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-[3px]">Master Room Types</label>
+                  </div>
+                  <div className="flex gap-2">
+                    <input type="text" value={(newItem as any).roomType || ''} onChange={e => setNewItem({ ...newItem, roomType: e.target.value } as any)} className="flex-1 p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500" placeholder="e.g. Deluxe Room, Suite..." />
+                    <Button onClick={addRoomType} className="rounded-2xl shrink-0 h-14 w-14 p-0 shadow-lg shadow-rose-500/20"><Plus className="w-5 h-5" /></Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {branding.roomTypes?.map(type => (
+                      <div key={type} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-rose-600 transition-colors">
+                        <Tag className="w-3 h-3" />
+                        {type}
+                        <button onClick={() => handleUpdateBranding({ ...branding, roomTypes: branding.roomTypes.filter(t => t !== type) })} className="text-white/40 hover:text-white"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[40px] border-2 border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <CheckCircle2 className="w-5 h-5 text-rose-500" />
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-[3px]">Default Inclusions</label>
+                  </div>
+                  <div className="flex gap-2">
+                    <input type="text" value={(newItem as any).inclusion || ''} onChange={e => setNewItem({ ...newItem, inclusion: e.target.value } as any)} className="flex-1 p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500" placeholder="e.g. Daily Breakfast..." />
+                    <Button onClick={addMasterInclusion} className="rounded-2xl shrink-0 h-14 w-14 p-0 shadow-lg shadow-rose-500/20"><Plus className="w-5 h-5" /></Button>
+                  </div>
+                  <div className="space-y-1">
+                    {branding.defaultInclusions?.map((inc, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg group">
+                        <span className="text-[10px] font-bold text-slate-600">{inc}</span>
+                        <button onClick={() => handleUpdateBranding({ ...branding, defaultInclusions: branding.defaultInclusions.filter((_, idx) => idx !== i) })} className="opacity-0 group-hover:opacity-100 text-rose-500"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[40px] border-2 border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <ShieldAlert className="w-5 h-5 text-rose-500" />
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-[3px]">Default Exclusions</label>
+                  </div>
+                  <div className="flex gap-2">
+                    <input type="text" value={(newItem as any).exclusion || ''} onChange={e => setNewItem({ ...newItem, exclusion: e.target.value } as any)} className="flex-1 p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500" placeholder="e.g. Airfare..." />
+                    <Button onClick={addMasterExclusion} className="rounded-2xl shrink-0 h-14 w-14 p-0 shadow-lg shadow-rose-500/20"><Plus className="w-5 h-5" /></Button>
+                  </div>
+                  <div className="space-y-1">
+                    {branding.defaultExclusions?.map((exc, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg group">
+                        <span className="text-[10px] font-bold text-slate-600">{exc}</span>
+                        <button onClick={() => handleUpdateBranding({ ...branding, defaultExclusions: branding.defaultExclusions.filter((_, idx) => idx !== i) })} className="opacity-0 group-hover:opacity-100 text-rose-500"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[40px] border-2 border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Clock className="w-5 h-5 text-rose-500" />
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-[3px]">Default Supplement Costs</label>
+                  </div>
+                  <div className="flex gap-2">
+                    <input type="text" value={(newItem as any).supplement || ''} onChange={e => setNewItem({ ...newItem, supplement: e.target.value } as any)} className="flex-1 p-4 border-2 border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500" placeholder="e.g. Innova Upgrade..." />
+                    <Button onClick={addMasterSupplement} className="rounded-2xl shrink-0 h-14 w-14 p-0 shadow-lg shadow-rose-500/20"><Plus className="w-5 h-5" /></Button>
+                  </div>
+                  <div className="space-y-1">
+                    {branding.defaultSupplementCosts?.map((sup, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg group">
+                        <span className="text-[10px] font-bold text-slate-600">{sup}</span>
+                        <button onClick={() => handleUpdateBranding({ ...branding, defaultSupplementCosts: branding.defaultSupplementCosts.filter((_, idx) => idx !== i) })} className="opacity-0 group-hover:opacity-100 text-rose-500"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>

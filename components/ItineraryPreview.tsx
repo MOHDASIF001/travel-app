@@ -129,8 +129,8 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
       position: 'absolute',
       top,
       left,
-      width: '215px',
-      height: '215px',
+      width: '235px',
+      height: '235px',
       // borderTopRightRadius: '22px',
       borderBottomLeftRadius: '22px',
       transform: 'rotate(45deg)',
@@ -197,7 +197,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
 
         <div style={{ position: 'absolute', top: '22%', left: '25px', zIndex: 100 }}>
           <h2 style={{ fontSize: '45px', fontWeight: 400, fontFamily: "'Dancing Script', cursive", color: exploreColor, margin: '0 0 -5px 0' }}>Explore</h2>
-          <h1 style={{ fontSize: '55px', fontWeight: 900, textTransform: 'uppercase', lineHeight: '1.0', color: destinationNameColor, letterSpacing: '2px', margin: 0, maxWidth: '390px' }}>
+          <h1 style={{ fontSize: '50px', fontWeight: 900, textTransform: 'uppercase', lineHeight: '1.0', color: destinationNameColor, letterSpacing: '2px', margin: 0, maxWidth: '420px' }}>
             {(data.packageName || data.destinations?.split(',')[0].trim() || 'KASHMIR').toUpperCase()}
           </h1>
         </div>
@@ -205,7 +205,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
         <div style={{ position: 'absolute', top: '50%', left: '-1px', zIndex: 100 }}>
           <div style={{ backgroundColor: bannerBorderColor, padding: '1px 10px 1px 0px', clipPath: 'polygon(0% 0%, 86% 0%, 100% 50%, 86% 100%, 0% 100%)' }}>
             <div style={{ background: bannerBgColor, color: bannerTextColor, padding: '10px 60px 12px 20px', clipPath: 'polygon(0% 0%, 86% 0%, 100% 50%, 86% 100%, 0% 100%)', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontWeight: 900, fontSize: '36px', lineHeight: '1', letterSpacing: '-1.5px' }}>{data.duration || '4N/5D'}</div>
+              <div style={{ fontWeight: 900, fontSize: '36px', lineHeight: '1', letterSpacing: '-1.5px' }}>{data.duration}</div>
               <div style={{ fontSize: '20px', fontWeight: 500, opacity: 0.9 }}>{data.packageType || 'Premium package'}</div>
             </div>
           </div>
@@ -214,15 +214,16 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
         {/* CLIENT NAME - 20px above Package Overview */}
         <div style={{ position: 'absolute', bottom: '310px', left: '5px', zIndex: 100 }}>
           <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-            Prepared For: <span style={{ color: exploreColor }}>{data.clientName || 'Valued Guest'}</span>
+            Client Name:- <span style={{ color: exploreColor }}>{data.clientName || 'Valued Guest'}</span>
           </h3>
         </div>
 
-        <div style={{ position: 'absolute', right: '-50px', top: '50px', width: '600px', height: '800px', zIndex: 50 }}>
-          <MontageImage src={data.coverImages?.[0]} top="0px" left="150px" zIndex={55} />
-          <MontageImage src={data.coverImages?.[1]} top="165px" left="320px" zIndex={54} />
-          <MontageImage src={data.coverImages?.[2]} top="330px" left="150px" zIndex={56} />
-          <MontageImage src={data.coverImages?.[3]} top="500px" left="320px" zIndex={55} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+          <MontageImage src={data.coverImages?.[0]} top="4%" left="48%" zIndex={10} />
+          <MontageImage src={data.coverImages?.[1]} top="21%" left="70%" zIndex={20} />
+          <MontageImage src={data.coverImages?.[2]} top="38%" left="45%" zIndex={30} />
+          <MontageImage src={data.coverImages?.[3]} top="54%" left="67%" zIndex={40} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.8) 100%)' }} />
         </div>
 
         <div style={{ position: 'absolute', bottom: '65px', left: '0', right: '0', backgroundColor: '#fff', padding: '10px 15px', zIndex: 1 }}>
@@ -383,7 +384,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
               <div key={loc} style={{ marginBottom: '35px', breakInside: 'auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: '15px' }}>
                   <span style={{ backgroundColor: badgeBgColor, color: badgeTextColor, padding: '5px 25px', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', borderRadius: '4px' }}>
-                    Hotel in {loc}
+                    Stay in {loc}
                   </span>
                 </div>
                 {catHotels.map(hotel => (
@@ -449,6 +450,9 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
           <div style={{ maxWidth: '650px', margin: '0 0' }}>
             <CostRow label="Total Travelers" value={`${data.pricing?.totalPax} PAX`} />
             <CostRow label="Adult Guest" value={data.pricing?.adults} />
+            {data.pricing?.roomType && (
+              <CostRow label="Room Category" value={data.pricing.roomType} />
+            )}
             <CostRow label="No of Rooms" value={data.pricing?.rooms} />
             {data.pricing?.extraBeds > 0 && (
               <CostRow label={`Extra Bed (${data.pricing.extraBeds})`} value={data.pricing.extraBedPrice} />
