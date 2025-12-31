@@ -12,6 +12,7 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
     }
 
     .font-montserrat {
@@ -27,8 +28,8 @@
       html,
       body {
         width: 210mm;
-        height: 297mm;
-        /* Force A4 height context */
+        height: auto !important;
+        min-height: 297mm;
         background-color: white !important;
         /* Remove any blue/slate backgrounds */
         margin: 0 !important;
@@ -62,6 +63,13 @@
         /* Ensure generic page-break class works */
         break-after: page;
       }
+
+      .print-reset-scale {
+        transform: none !important;
+        transform-origin: top left !important;
+        height: auto !important;
+        width: auto !important;
+      }
     }
 
     .print-only {
@@ -71,6 +79,7 @@
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
+
     .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;

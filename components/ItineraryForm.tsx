@@ -439,6 +439,42 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
               <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Select Registered Hotels</h3>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">From Master Repository</p>
             </div>
+
+            {/* Selected Hotels Summary - FIX FOR PHANTOM HOTELS */}
+            {formData.selectedHotels.length > 0 && (
+              <div className="bg-slate-900 p-6 md:p-8 rounded-[40px] shadow-2xl border-4 border-slate-800">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                      <HotelIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-white uppercase text-xs tracking-widest leading-none">Selected for this Trip</h4>
+                      <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Total {formData.selectedHotels.length} Properties Bound</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {formData.selectedHotels.map(h => (
+                    <div key={h.id} className="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center gap-4 group hover:bg-white/10 transition-all">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 overflow-hidden shrink-0">
+                        {h.images?.[0] ? <img src={h.images[0]} className="w-full h-full object-cover" alt="" /> : <HotelIcon className="w-full h-full p-2.5 text-white/20" />}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-white uppercase tracking-tighter truncate max-w-[120px]">{h.name}</span>
+                        <span className="text-[8px] font-bold text-rose-400 uppercase tracking-widest">{h.category}</span>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleHotelSelection(h); }}
+                        className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all ml-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {masterHotels.map(hotel => {
                 const isSelected = formData.selectedHotels.some(h => h.id === hotel.id);
@@ -650,25 +686,25 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 no-print pb-32">
-      <div className="bg-white rounded-[32px] md:rounded-[60px] shadow-2xl overflow-hidden border-2 border-slate-900">
-        <div className="bg-slate-900 px-6 md:px-12 py-8 md:py-12 flex flex-col md:flex-row items-center justify-between gap-6">
+    <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:p-8 no-print pb-32">
+      <div className="bg-white rounded-[32px] md:rounded-[60px] shadow-2xl overflow-hidden border-2 border-slate-900 w-full mx-auto">
+        <div className="bg-slate-900 px-6 md:px-8 lg:px-12 py-8 md:py-10 lg:py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
-            <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter">Itinerary Studio</h2>
+            <h2 className="text-2xl lg:text-4xl font-black text-white uppercase tracking-tighter">Itinerary Studio</h2>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3">
               <span className="bg-rose-600 text-white text-[8px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">{formData.packageName || 'UNNAMED TRIP'}</span>
               <span className="text-white/40 text-[8px] md:text-[10px] font-black uppercase tracking-[4px]">Step {currentStep} of {steps.length}</span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <Button variant="outline" onClick={onCancel} className="bg-white/5 text-white border-white/10 hover:bg-white/20 px-6 h-12 md:h-14 rounded-xl md:rounded-2xl w-full sm:w-auto">Cancel</Button>
-            <Button onClick={() => onSave(formData)} className="gap-3 h-12 md:h-14 px-8 md:px-10 shadow-2xl shadow-rose-900/50 rounded-xl md:rounded-2xl font-black uppercase tracking-tighter w-full sm:w-auto" style={{ backgroundColor: branding.primaryColor }}>
-              <Save className="w-5 h-5" /> Commit & Render
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full md:w-auto shrink-0">
+            <Button variant="outline" onClick={onCancel} className="bg-white/5 text-white border-white/10 hover:bg-white/20 px-4 md:px-6 h-10 md:h-12 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest w-full sm:w-auto">Cancel</Button>
+            <Button onClick={() => onSave(formData)} className="gap-2 h-10 md:h-12 px-6 md:px-8 shadow-2xl shadow-rose-900/50 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-tighter w-full sm:w-auto whitespace-nowrap" style={{ backgroundColor: branding.primaryColor }}>
+              <Save className="w-4 h-4 md:w-5 h-5" /> Commit & Render
             </Button>
           </div>
         </div>
 
-        <div className="border-b-4 border-slate-900 bg-slate-50 px-4 md:px-12 py-4 md:py-8 flex items-center justify-between overflow-x-auto gap-4 md:gap-8 no-scrollbar">
+        <div className="border-b-4 border-slate-900 bg-slate-50 px-4 md:px-6 lg:px-12 py-4 md:py-6 lg:py-8 flex items-center justify-start md:justify-center lg:justify-between overflow-x-auto gap-4 md:gap-6 lg:gap-8 no-scrollbar">
           {steps.map(step => (
             <div key={step.id} className="flex items-center gap-3 md:gap-4 shrink-0">
               <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-sm md:text-lg transition-all duration-500 ${currentStep === step.id ? 'bg-slate-900 text-white shadow-2xl scale-110' : currentStep > step.id ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}`}>

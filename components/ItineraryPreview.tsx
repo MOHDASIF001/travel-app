@@ -471,7 +471,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
           </div>
           <div style={{ maxWidth: '650px', margin: '0 0' }}>
             {data.pricing?.nightBreakup?.map((item, idx) => (
-              <CostRow key={idx} label={item.destination} value={String(item.nights)} />
+              <CostRow key={idx} label={item.destination} value={String(item.nights) + ' Nights'} />
             ))}
           </div>
         </div>

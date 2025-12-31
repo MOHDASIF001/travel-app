@@ -17,6 +17,23 @@ const API_BASE = 'https://travel-app-production-24d5.up.railway.app/api';
 const App: React.FC = () => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('itinerary_token'));
   const [user, setUser] = useState<any>(JSON.parse(localStorage.getItem('itinerary_user') || 'null'));
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 850) {
+        // 210mm is ~794px. We add some margin.
+        const newScale = (width - 32) / 820;
+        setScale(Math.min(newScale, 1));
+      } else {
+        setScale(1);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [view, setView] = useState<'dashboard' | 'builder' | 'preview' | 'settings' | 'hotels' | 'admin'>('dashboard');
   const [itineraries, setItineraries] = useState<ItineraryData[]>([]);
@@ -196,25 +213,32 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSave = async (data: ItineraryData) => {
-    await saveItineraryToServer(data);
+  const handleSave = (data: ItineraryData) => {
+    // 1. Update UI state instantly
     setItineraries(prev => {
       const exists = prev.find(i => i.id === data.id);
       if (exists) return prev.map(i => i.id === data.id ? data : i);
       return [data, ...prev];
     });
     setCurrentItinerary(data);
+
+    // 2. Switch to preview instantly (Optimistic UI)
     setView('preview');
+
+    // 3. Save to server in backgrounds (Non-blocking)
+    saveItineraryToServer(data).catch(err => {
+      console.error('Background save failed:', err);
+    });
   };
 
-  const handleUpdateHotels = async (updated: Hotel[]) => {
+  const handleUpdateHotels = (updated: Hotel[]) => {
     setMasterHotels(updated);
-    await saveHotelsToServer(updated);
+    saveHotelsToServer(updated).catch(err => console.error('Hotel sync failed:', err));
   };
 
-  const handleUpdateBranding = async (updated: Branding) => {
+  const handleUpdateBranding = (updated: Branding) => {
     setBranding(updated);
-    await saveBrandingToServer(updated);
+    saveBrandingToServer(updated).catch(err => console.error('Branding sync failed:', err));
   };
 
   const handleMasterGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,7 +419,7 @@ const App: React.FC = () => {
         </aside>
       )}
 
-      <main className={`flex-1 ${view !== 'preview' ? 'pt-16 md:pt-0 md:ml-64' : ''}`}>
+      <main className={`flex-1 overflow-x-hidden ${view !== 'preview' ? 'pt-16 md:pt-0 md:ml-64' : ''}`}>
         {view === 'admin' && user?.role === 'admin' && (
           <AdminPanel token={token!} primaryColor={branding.primaryColor} />
         )}
@@ -425,19 +449,30 @@ const App: React.FC = () => {
         )}
 
         {view === 'preview' && currentItinerary && (
-          <div className="min-h-screen bg-slate-800 py-12 px-4 flex flex-col items-center gap-8 print:bg-white print:p-0 print:m-0 print:block overflow-x-auto w-full">
-            <div className="no-print flex gap-4">
-              <Button onClick={() => setView('builder')} variant="outline" className="bg-white/70 text-white border-white/20  gap-2 rounded-2xl h-14 px-8">
-                <FileText className="w-5 h-5" /> Back to Editor
-              </Button>
-              <Button onClick={() => window.print()} className="gap-2 h-14 px-10 shadow-2xl rounded-2xl font-black uppercase tracking-widest" style={{ backgroundColor: branding.primaryColor }}>
-                <Printer className="w-5 h-5" /> Export PDF
-              </Button>
-              <Button onClick={() => setView('dashboard')} variant="outline" className="bg-white/70 text-black border-white/20 hover:bg-white/20 rounded-2xl h-14 w-14 p-0">
-                <X className="w-6 h-6" />
+          <div className="min-h-screen bg-slate-800 py-12 px-4 flex flex-col items-center gap-8 print:bg-white print:p-0 print:m-0 print:block w-full overflow-x-hidden">
+            <div className="no-print flex flex-col sm:flex-row gap-4 w-full max-w-[210mm] items-center justify-center">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button onClick={() => setView('builder')} variant="outline" className="bg-white/70 text-white border-white/20 hover:bg-white/20 gap-2 rounded-xl h-12 md:h-14 px-4 md:px-8 flex-1 sm:flex-none text-xs md:text-base font-bold">
+                  <FileText className="w-4 h-4 md:w-5 h-5" /> Back to Editor
+                </Button>
+                <Button onClick={() => window.print()} className="gap-2 h-12 md:h-14 px-6 md:px-10 shadow-2xl rounded-xl font-black uppercase tracking-widest flex-1 sm:flex-none text-xs md:text-base" style={{ backgroundColor: branding.primaryColor }}>
+                  <Printer className="w-4 h-4 md:w-5 h-5" /> Export PDF
+                </Button>
+              </div>
+              <Button onClick={() => setView('dashboard')} variant="outline" className="bg-white/70 text-black border-white/20  rounded-xl h-12 w-12 md:h-14 md:w-14 p-0 shrink-0 self-center">
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </Button>
             </div>
-            <ItineraryPreview data={currentItinerary} branding={branding} />
+
+            <div className="w-full flex justify-center overflow-visible print:!h-auto" style={{ height: scale < 1 ? `calc(297mm * ${scale} + 100px)` : 'auto' }}>
+              <div className="print-reset-scale" style={{
+                transform: `scale(${scale})`,
+                transformOrigin: 'top center',
+                transition: 'transform 0.2s ease-out'
+              }}>
+                <ItineraryPreview data={currentItinerary} branding={branding} />
+              </div>
+            </div>
           </div>
         )}
 
