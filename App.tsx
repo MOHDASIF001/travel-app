@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import html2pdf from 'html2pdf.js';
 import { compressImage } from './utils';
 import { Branding, ItineraryData, Hotel } from './types';
 import { DEFAULT_BRANDING, MOCK_ITINERARY, MASTER_HOTELS } from './constants';
@@ -44,6 +45,7 @@ const App: React.FC = () => {
   const [newItem, setNewItem] = useState({ location: '', category: '', term: '', policy: '', overview: '' });
   const [newDayTemplate, setNewDayTemplate] = useState({ title: '', description: '', distance: '', travelTime: '' });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const defaultCoverInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,6 +68,52 @@ const App: React.FC = () => {
     setToken(null);
     setUser(null);
     setView('dashboard');
+  };
+
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById('itinerary-pdf');
+    if (!element) return;
+
+    setIsDownloadingPDF(true);
+
+    // Use the LIVE element to ensure images are loaded
+    // We temporarily reset styles to ensure full capture
+    const parent = element.parentElement;
+    const originalTransform = parent ? parent.style.transform : '';
+    const bodyOverflow = document.body.style.overflow;
+
+    if (parent) parent.style.transform = 'none'; // Un-scale
+    document.body.style.overflow = 'visible';    // Prevent clipping
+
+    // 1px = 0.264583 mm approximately
+    const heightMM = (element.scrollHeight * 0.264583) + 20;
+
+    const opt = {
+      margin: 0,
+      filename: `Itinerary_${currentItinerary?.clientName || 'Export'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        scrollY: 0,
+        windowWidth: 1920,
+        width: 794,
+        letterRendering: true,
+        logging: false
+      },
+      jsPDF: { unit: 'mm', format: [210, heightMM], orientation: 'portrait' },
+      pagebreak: { mode: [] }
+    } as any;
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } finally {
+      // Restore styles immediately
+      if (parent) parent.style.transform = originalTransform;
+      document.body.style.overflow = bodyOverflow;
+      setIsDownloadingPDF(false);
+    }
   };
 
   // Set initial view based on user role
@@ -450,13 +498,38 @@ const App: React.FC = () => {
 
         {view === 'preview' && currentItinerary && (
           <div className="min-h-screen bg-slate-800 py-12 px-4 flex flex-col items-center gap-8 print:bg-white print:p-0 print:m-0 print:block w-full overflow-x-hidden">
+
+            {/* Loading Overlay */}
+            {isDownloadingPDF && (
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center">
+                <div className="bg-white rounded-3xl p-10 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4">
+                  <div className="relative w-20 h-20">
+                    <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-transparent rounded-full animate-spin" style={{
+                      borderTopColor: branding.primaryColor,
+                      borderRightColor: branding.primaryColor
+                    }}></div>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-2xl font-black text-slate-900 mb-2">Generating PDF...</h3>
+                    <p className="text-sm text-slate-500 font-medium">Please wait while we prepare your itinerary</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="no-print flex flex-col sm:flex-row gap-4 w-full max-w-[210mm] items-center justify-center">
               <div className="flex gap-2 w-full sm:w-auto">
                 <Button onClick={() => setView('builder')} variant="outline" className="bg-white/70 text-white border-white/20 hover:bg-white/20 gap-2 rounded-xl h-12 md:h-14 px-4 md:px-8 flex-1 sm:flex-none text-xs md:text-base font-bold">
                   <FileText className="w-4 h-4 md:w-5 h-5" /> Back to Editor
                 </Button>
-                <Button onClick={() => window.print()} className="gap-2 h-12 md:h-14 px-6 md:px-10 shadow-2xl rounded-xl font-black uppercase tracking-widest flex-1 sm:flex-none text-xs md:text-base" style={{ backgroundColor: branding.primaryColor }}>
-                  <Printer className="w-4 h-4 md:w-5 h-5" /> Export PDF
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloadingPDF}
+                  className="gap-2 h-12 md:h-14 px-6 md:px-10 shadow-2xl rounded-xl font-black uppercase tracking-widest flex-1 sm:flex-none text-xs md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: branding.primaryColor }}
+                >
+                  <Printer className="w-4 h-4 md:w-5 h-5" /> {isDownloadingPDF ? 'Generating...' : 'Download PDF'}
                 </Button>
               </div>
               <Button onClick={() => setView('dashboard')} variant="outline" className="bg-white/70 text-black border-white/20  rounded-xl h-12 w-12 md:h-14 md:w-14 p-0 shrink-0 self-center">

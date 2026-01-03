@@ -124,6 +124,12 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
     </div>
   );
 
+  /*
+   * PDF-COMPATIBLE HYBRID DESIGN
+   * Keeps the container size and rotation exactly as original (Visual Stability).
+   * Uses SVG internally to handle the image and counter-rotation (PDF Stability).
+   * Manually draws the rounded bottom-left corner to match borderBottomLeftRadius: 22px.
+   */
   const MontageImage = ({ src, top, left, zIndex }: { src: string; top: string; left: string; zIndex: number }) => (
     <div style={{
       position: 'absolute',
@@ -131,29 +137,43 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
       left,
       width: '235px',
       height: '235px',
-      // borderTopRightRadius: '22px',
-      borderBottomLeftRadius: '22px',
-      transform: 'rotate(45deg)',
-      overflow: 'hidden',
+      transform: 'rotate(45deg)', // User-approved rotation
       zIndex,
-      backgroundColor: '#fff'
+      // We remove overflow:hidden and bg color here, moving them into SVG
+      filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))'
     }}>
-      {src && (
-        <div
-          style={{
-            position: 'absolute',
-            width: '142%',
-            height: '142%',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%) rotate(-45deg)',
-            backgroundImage: `url("${src}")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
-      )}
+      <svg width="100%" height="100%" viewBox="0 0 235 235" style={{ overflow: 'visible' }}>
+        <defs>
+          <clipPath id={`diamond-clip-${zIndex}`}>
+            {/* Path replicating 235px square with 22px bottom-left radius */}
+            <path d="M0,0 L235,0 L235,235 L22,235 Q0,235 0,213 Z" />
+          </clipPath>
+        </defs>
+
+        {/* White Background with Rounded Corner */}
+        <path d="M0,0 L235,0 L235,235 L22,235 Q0,235 0,213 Z" fill="#fff" />
+
+        {/* Image - Counter Rotated inside the SVG to be upright */}
+        {src && (
+          <g clipPath={`url(#diamond-clip-${zIndex})`}>
+            {/* 
+               The image needs to be centered and rotated -45deg relative to the visual center.
+               Center of box is 117.5, 117.5.
+               Original: width 142%, height 142% -> ~334px.
+               Centered: x = (235 - 334)/2 = -49.5
+             */}
+            <image
+              href={src}
+              width="334"
+              height="334"
+              x="-49.5"
+              y="-49.5"
+              transform="rotate(-45, 117.5, 117.5)"
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </g>
+        )}
+      </svg>
     </div>
   );
 
@@ -203,8 +223,20 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
         </div>
 
         <div style={{ position: 'absolute', top: '50%', left: '-1px', zIndex: 100 }}>
-          <div style={{ backgroundColor: bannerBorderColor, padding: '1px 10px 1px 0px', clipPath: 'polygon(0% 0%, 86% 0%, 100% 50%, 86% 100%, 0% 100%)' }}>
-            <div style={{ background: bannerBgColor, color: bannerTextColor, padding: '10px 60px 12px 20px', clipPath: 'polygon(0% 0%, 86% 0%, 100% 50%, 86% 100%, 0% 100%)', display: 'flex', flexDirection: 'column' }}>
+          {/* SVG RIBBON REPLACEMENT */}
+          <div style={{ position: 'relative', padding: '12px 60px 12px 20px', display: 'flex', flexDirection: 'column' }}>
+            {/* Background SVG Shape */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: -1, filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.3))' }}>
+              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Border Layer */}
+                <polygon points="0,0 90,0 100,50 90,100 0,100" fill={bannerBorderColor} />
+                {/* Inner Layer (Thickened border by increasing inset - approx 40% thicker than before) */}
+                <polygon points="1,3 85,3 98.4,50 85,97 1,97" fill={bannerBgColor} />
+              </svg>
+            </div>
+
+            {/* Content */}
+            <div style={{ color: bannerTextColor, position: 'relative', zIndex: 2 }}>
               <div style={{ fontWeight: 900, fontSize: '36px', lineHeight: '1', letterSpacing: '-1.5px' }}>{data.duration}</div>
               <div style={{ fontSize: '20px', fontWeight: 500, opacity: 0.9 }}>{data.packageType || 'Premium package'}</div>
             </div>
@@ -233,10 +265,11 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
 
         <div style={{ position: 'absolute', bottom: '20px', left: '0', right: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', zIndex: 110 }}>
           <div style={{ color: '#fff', fontSize: '15px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Phone size={16} /> {branding?.phone}
+
+            {branding?.phone}
           </div>
           <div style={{ color: '#fff', fontSize: '15px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Globe size={16} /> {branding?.website}
+            {branding?.website}
           </div>
           <div style={{ color: '#fff', fontSize: '15px', fontWeight: 900 }}>
             👤 {branding?.companyName || 'Travel Partner'}
@@ -256,109 +289,174 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
             const dateInfo = getDayDateInfo(idx, day.date);
             return (
               <div key={day.id} style={{ marginBottom: '35px', breakInside: 'avoid' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', width: '100%', marginBottom: '6px', margin: 'auto' }}>
-                  {/* LEFT: DAY BADGE - EXACT IMAGE DESIGN */}
+
+                {/* 1. TITLE ROW: Flexbox with Explicit Font Metrics */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  height: '40px',
+                  marginBottom: '8px',
+                  fontFamily: 'Arial, sans-serif'
+                }}>
+
+                  {/* A. BADGE */}
                   <div style={{
+                    position: 'relative',
+                    width: '65px',
+                    height: '34px',
                     flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginTop: '2px'
+                    marginRight: '15px'
                   }}>
-                    {/* Red Pill */}
                     <div style={{
                       backgroundColor: primaryColor,
                       borderRadius: '5px',
-                      padding: '4px 15px 4px 8px',
-                      height: '30px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      zIndex: 1
+                      padding: '0 8px',
+                      height: '35px',
+                      width: '55px',
+                      position: 'absolute',
+                      left: 0,
+                      top: 3
                     }}>
                       <span style={{
                         color: '#fff',
                         fontSize: '18px',
                         fontWeight: 800,
+                        lineHeight: '0px',
+                        fontFamily: 'Arial, sans-serif'
                       }}>Day</span>
                     </div>
-                    {/* Overlapping Circle */}
                     <div style={{
-                      width: '26px',
-                      height: '26px',
+                      width: '28px',
+                      height: '28px',
                       borderRadius: '50%',
                       backgroundColor: '#fff',
                       border: `2px solid ${primaryColor}`,
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '18px',
-                      fontWeight: 900,
+                      // alignItems: 'center',
+                      // justifyContent: 'center',
+
                       color: primaryColor,
-                      marginLeft: '-14px',
-                      zIndex: 2,
-                      // boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      position: 'absolute',
+                      left: '45px',
+                      top: '7px'
                     }}>
-                      {dateInfo.day}
+                      <span style={{
+                        fontSize: '18px',
+                        fontWeight: 900,
+                        position: 'absolute',
+                        top: '-8px',
+                        left: '7px',
+                        fontFamily: 'Arial, sans-serif'
+                      }}>{dateInfo.day}</span>
                     </div>
                   </div>
 
-                  {/* MIDDLE & RIGHT: TITLE, DASHED LINE, AND DATE */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', width: '100%', paddingTop: '4px' }}>
-                      {/* Activity Title */}
-                      <h3 style={{
-                        fontSize: '18px',
-                        fontWeight: 900,
-                        color: highlightColor,
-                        margin: 0,
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {day.title}
-                      </h3>
-                      {/* Connecting Dashed Line */}
-                      <div style={{
-                        flex: 1,
-                        height: '0px',
-                        borderBottom: `2px dashed ${highlightColor}`,
-                        opacity: 0.2,
-                        margin: '0 15px',
-                        alignSelf: 'center',
-                        marginTop: '6px'
-                      }}></div>
-                      {/* Date on Right */}
-                      <div style={{
-                        fontSize: '18px',
-                        fontWeight: 900,
-                        color: highlightColor,
-                        whiteSpace: 'nowrap',
-                        marginTop: '0px'
-                      }}>
-                        {dateInfo.full || `Day ${idx + 1}`}
-                      </div>
-                    </div>
+                  {/* B. TITLE */}
+                  <div style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    color: highlightColor,
+                    whiteSpace: 'nowrap',
+                    paddingRight: '15px',
+                    lineHeight: '40px',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontFamily: 'Arial, sans-serif',
+                    flexShrink: 0
+                  }}>
+                    {day.title}
+                  </div>
 
-                    {/* LOGISTICS BELOW TITLE - Grayish Blue Style */}
-                    {(day.distance || day.travelTime) && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
-                        {day.distance && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                            <MapPin size={13} color={primaryColor} /> {day.distance}
-                          </div>
-                        )}
-                        {day.distance && day.travelTime && (
-                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#cbd5e1' }}></div>
-                        )}
-                        {day.travelTime && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                            <Clock size={13} color={primaryColor} /> {day.travelTime}
-                          </div>
-                        )}
+                  {/* C. DASHED LINE */}
+                  <div style={{
+                    flexGrow: '1',
+                    height: '25px',
+                    borderBottom: `2px dashed ${highlightColor}`,
+                    opacity: 0.5,
+                    margin: '0 15px'
+                  }}></div>
+
+                  {/* D. DATE */}
+                  <div style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    color: highlightColor,
+                    whiteSpace: 'nowrap',
+                    lineHeight: '40px',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontFamily: 'Arial, sans-serif',
+                    flexShrink: 0
+                  }}>
+                    {dateInfo.full || `Day ${idx + 1}`}
+                  </div>
+
+                </div>
+
+                {/* 2. LOGISTICS: Distance & Time (Indented) */}
+                {(day.distance || day.travelTime) && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    marginTop: '4px',
+                    paddingLeft: '80px',
+                    height: '18px',
+                    fontFamily: 'Arial, sans-serif'
+                  }}>
+                    {day.distance && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        color: '#475569',
+                        textTransform: 'uppercase',
+                        lineHeight: '18px',
+                        height: '28px'
+                      }}>
+                        <MapPin size={15} style={{
+                          marginTop: '1px',
+                          color: primaryColor,
+                        }} />
+                        <span>{day.distance}</span>
+                      </div>
+                    )}
+                    {day.distance && day.travelTime && (
+                      <div style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        backgroundColor: '#cbd5e1'
+                      }}></div>
+                    )}
+                    {day.travelTime && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        color: '#475569',
+                        textTransform: 'uppercase',
+                        lineHeight: '18px',
+                        height: '20px'
+                      }}>
+                        <Clock size={15} style={{
+                          marginTop: '1px',
+                          color: primaryColor,
+                        }} />
+                        <span>{day.travelTime}</span>
                       </div>
                     )}
                   </div>
-                </div>
+                )}
 
-                {/* DESCRIPTION - Aligned with the start of the title */}
+                {/* 3. DESCRIPTION (Indented) */}
                 <p style={{
                   fontSize: '17px',
                   lineHeight: '1.6',
@@ -366,83 +464,93 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
                   textAlign: 'justify',
                   fontWeight: 500,
                   margin: '5px 0 0 0',
-                  paddingLeft: '70px'
+                  paddingLeft: '78px'
                 }}>
                   {day.description}
                 </p>
+
               </div>
             );
           })}
-        </div>
+        </div >
 
         {/* HOTEL ACCOMMODATIONS */}
         <div style={{ borderTop: `1px solid #eee`, paddingTop: '20px', marginBottom: '50px' }}>
-          {uniqueCategories.map((loc) => {
-            const catHotels = hotelList.filter(h => (h.category || 'General').trim() === loc);
-            if (catHotels.length === 0) return null;
-            return (
-              <div key={loc} style={{ marginBottom: '35px', breakInside: 'auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                  <span style={{ backgroundColor: badgeBgColor, color: badgeTextColor, padding: '5px 25px', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', borderRadius: '4px' }}>
-                    Stay in {loc}
-                  </span>
-                </div>
-                {catHotels.map(hotel => (
-                  <div key={hotel.id} style={{ width: '100%', background: '#fcfcfc', marginBottom: '20px', borderRadius: '10px', overflow: 'hidden', display: 'flex', breakInside: 'avoid', border: '1.5px solid #eee' }}>
-                    <div style={{ padding: '10px 20px', flex: '1.2', borderRight: '1.5px solid #eee' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
-                        <h3 style={{ fontSize: '20px', fontWeight: 900, color: highlightColor, margin: 0 }}>{hotel.name}</h3>
-                        <div style={{ display: 'flex', gap: '2px' }}>{renderStars(hotel.stars)}</div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
-                        <MapPin size={16} color={iconColor} />
-                        <p style={{ fontSize: '16px', color: textColor, fontWeight: 500, margin: 0, opacity: 0.8 }}>{hotel.location}</p>
-                      </div>
-                      <div style={{ borderTop: '1px solid #eee', paddingTop: '20px' }}>
-                        <h4 style={{ fontSize: '18px', fontWeight: 900, color: textColor, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>Amenities</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          {hotel.amenities?.slice(0, 6).map((am, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Check size={10} color="#fff" strokeWidth={4} />
+          {
+            uniqueCategories.map((loc) => {
+              const catHotels = hotelList.filter(h => (h.category || 'General').trim() === loc);
+              if (catHotels.length === 0) return null;
+              return (
+                <div key={loc} style={{ marginBottom: '35px', breakInside: 'auto' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                    <span style={{ backgroundColor: badgeBgColor, color: badgeTextColor, padding: '5px 5px 20px 5px', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', borderRadius: '4px' }}>
+                      Stay in {loc}
+                    </span>
+                  </div>
+                  {catHotels.map(hotel => (
+                    <div key={hotel.id} style={{ width: '100%', background: '#fcfcfc', marginBottom: '20px', borderRadius: '10px', overflow: 'hidden', display: 'flex', breakInside: 'avoid', border: '1.5px solid #eee' }}>
+                      <div style={{ padding: '10px 20px', flex: '1.2', borderRight: '1.5px solid #eee' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
+                          <h3 style={{ fontSize: '20px', fontWeight: 900, color: highlightColor, margin: 0 }}>{hotel.name}</h3>
+                          <div style={{ display: 'flex', gap: '2px' }}>{renderStars(hotel.stars)}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0px' }}>
+                          <MapPin size={16} color={iconColor} />
+                          <p style={{
+                            fontSize: '16px',
+                            color: textColor,
+                            fontWeight: 500,
+                            margin: '0 0 10px 0px',
+                            opacity: 0.8
+                          }}>
+                            {hotel.location}</p>
+                        </div>
+                        <div style={{ borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                          <h4 style={{ fontSize: '18px', fontWeight: 900, color: textColor, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>Amenities</h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            {hotel.amenities?.slice(0, 6).map((am, i) => (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  <Check size={10} color="#fff" strokeWidth={4} />
+                                </div>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: textColor }}>{am}</span>
                               </div>
-                              <span style={{ fontSize: '14px', fontWeight: 600, color: textColor }}>{am}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ flex: '1', padding: '15px', backgroundColor: '#fff' }}>
+                        <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #eee', backgroundColor: '#f9f9f9', marginBottom: '5px' }}>
+                          {hotel.images && hotel.images[0] ? (
+                            <img src={hotel.images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={hotel.name} />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#ccc' }}>Photo Pending</span></div>
+                          )}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px' }}>
+                          {[1, 2, 3].map((idx) => (
+                            <div key={idx} style={{ height: '70px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #eee', backgroundColor: '#f9f9f9' }}>
+                              {hotel.images && hotel.images[idx] ? (
+                                <img src={hotel.images[idx]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Gallery" />
+                              ) : (
+                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Calendar size={14} color="#eee" />
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
                       </div>
                     </div>
-                    <div style={{ flex: '1', padding: '15px', backgroundColor: '#fff' }}>
-                      <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #eee', backgroundColor: '#f9f9f9', marginBottom: '5px' }}>
-                        {hotel.images && hotel.images[0] ? (
-                          <img src={hotel.images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={hotel.name} />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#ccc' }}>Photo Pending</span></div>
-                        )}
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px' }}>
-                        {[1, 2, 3].map((idx) => (
-                          <div key={idx} style={{ height: '70px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #eee', backgroundColor: '#f9f9f9' }}>
-                            {hotel.images && hotel.images[idx] ? (
-                              <img src={hotel.images[idx]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Gallery" />
-                            ) : (
-                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Calendar size={14} color="#eee" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
+                  ))}
+                </div>
+              );
+            })
+          }
+        </div >
 
         {/* PRICING & COSTING */}
-        <div style={{ borderTop: `1px solid #eee`, paddingTop: '20px', marginBottom: '50px', pageBreakBefore: 'always' }}>
+        < div style={{ borderTop: `1px solid #eee`, paddingTop: '20px', marginBottom: '50px', pageBreakBefore: 'always' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px' }}>
             <div style={{ width: '6px', height: '28px', backgroundColor: primaryColor, borderRadius: '4px' }}></div>
             <h3 style={{ fontSize: '24px', fontWeight: 800, color: sectionTitleColor, margin: 0 }}>Tour Package Pricing</h3>
@@ -474,17 +582,17 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
               <CostRow key={idx} label={item.destination} value={String(item.nights) + ' Nights'} />
             ))}
           </div>
-        </div>
+        </div >
 
         <PolicyBox title="Inclusion" items={data.inclusions || []} bgColor="#F1F1F1" accentColor="#E5E5E5" />
         <PolicyBox title="Excludes" items={data.exclusions || []} bgColor="#FF8C42" accentColor="#F56C0A" textColorOverride="#000" />
         <PolicyBox title="Supplement Cost" items={data.supplementCosts || []} bgColor="#FFCC33" accentColor="#EAB308" textColorOverride="#000" />
         <PolicyBox title="Terms & Conditions" items={data.terms || []} bgColor="#E5E7EB" accentColor="#D1D5DB" />
         <PolicyBox title="Cancellation Policy" items={data.cancellationPolicy || []} bgColor="#E5E7EB" accentColor="#D1D5DB" />
-      </div>
+      </div >
 
       {/* FINAL PAGE */}
-      <section className="relative w-full h-[296mm] overflow-hidden" style={{ background: primaryColor, pageBreakBefore: 'always' }}>
+      < section className="relative w-full h-[296mm] overflow-hidden" style={{ background: primaryColor, pageBreakBefore: 'always' }}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.55 }}>
           <img src="../images/kashmir-bottom.jpg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Travel Background" />
         </div>
@@ -495,7 +603,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
             {renderLogo('light', 'lg')}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', width: '530px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', width: '630px' }}>
             {(branding?.officeLocations && branding.officeLocations.length > 0 ? branding.officeLocations : branding?.locations || ['Srinagar', 'Gulmarg', 'Pahalgam', 'Sonmarg']).map((loc, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <div style={{
@@ -507,7 +615,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: '5px solid #fff',
-                  zIndex: 2,
+                  zIndex: 22,
                   // boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
                 }}>
                   <MapPin size={38} color="#fff" fill="#fff" />
@@ -515,9 +623,9 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
                 <div style={{
                   flex: 1,
                   backgroundColor: '#fff',
-                  padding: '18px 30px 18px 50px',
+                  padding: '8px 20px 20px 50px',
                   borderRadius: '0 40px 40px 0',
-                  marginLeft: '-37px',
+                  marginLeft: '-7px',
                   zIndex: 1,
                   // boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
                 }}>
@@ -536,7 +644,7 @@ export const ItineraryPreview: React.FC<ItineraryPreviewProps> = ({ data, brandi
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </section >
+    </div >
   );
 };

@@ -379,7 +379,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                           />
                         </div>
 
-                        <div className="flex flex-col">
+                        <div className="flex flex-col w-full md:w-auto md:min-w-[140px]">
                           <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Schedule Date</label>
                           <input
                             type="date"
