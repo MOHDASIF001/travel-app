@@ -76,6 +76,23 @@ const App: React.FC = () => {
 
     setIsDownloadingPDF(true);
 
+    // Wait for images to load (especially important on mobile Safari)
+    const waitForImages = async () => {
+      const images = element.querySelectorAll('img');
+      const promises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = () => resolve(null);
+          img.onerror = () => resolve(null); // Resolve even on error to not block
+        });
+      });
+      await Promise.all(promises);
+      // Extra delay for mobile Safari to ensure render
+      await new Promise(resolve => setTimeout(resolve, 500));
+    };
+
+    await waitForImages();
+
     // Use the LIVE element to ensure images are loaded
     // We temporarily reset styles to ensure full capture
     const parent = element.parentElement;

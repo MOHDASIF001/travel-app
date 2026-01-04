@@ -17,6 +17,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
   const [formData, setFormData] = useState<ItineraryData>(initialData);
   const [newEntry, setNewEntry] = useState({ type: '', text: '' });
   const [templateSearchTerm, setTemplateSearchTerm] = useState('');
+  const [hotelSearchTerm, setHotelSearchTerm] = useState('');
   // Modal for Picking Master Images
   const [showMasterImgPicker, setShowMasterImgPicker] = useState<{ slot: number; open: boolean }>({ slot: 0, open: false });
 
@@ -145,11 +146,11 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Client Name</label>
-                <input type="text" value={formData.clientName} onChange={e => updateField('clientName', e.target.value)} className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-xl md:rounded-2xl text-slate-900 font-black outline-none focus:border-rose-500" placeholder="e.g. Rahul Sharma" />
+                <input type="text" value={formData.clientName} onChange={e => updateField('clientName', e.target.value)} className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-[10px] md:rounded-[10px] text-slate-900 font-black outline-none focus:border-rose-500" placeholder="e.g. Rahul Sharma" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Package Name</label>
-                <input type="text" value={formData.packageName} onChange={e => updateField('packageName', e.target.value)} className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-xl md:rounded-2xl text-slate-900 font-black outline-none focus:border-rose-500 uppercase" placeholder="e.g. MAGNIFICENT KASHMIR" />
+                <input type="text" value={formData.packageName} onChange={e => updateField('packageName', e.target.value)} className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-[10px] md:rounded-[10px] text-slate-900 font-black outline-none focus:border-rose-500 uppercase" placeholder="e.g. MAGNIFICENT KASHMIR" />
               </div>
 
               <div className="space-y-2">
@@ -159,7 +160,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                 <select
                   value={formData.packageType}
                   onChange={e => updateField('packageType', e.target.value)}
-                  className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-xl md:rounded-2xl text-slate-900 font-black outline-none focus:border-rose-500 bg-slate-50 uppercase"
+                  className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-[10px] md:rounded-[10px] text-slate-900 font-black outline-none focus:border-rose-500 bg-slate-50 uppercase"
                 >
                   <option value="">Select Category</option>
                   {branding.packageCategories.map(cat => (
@@ -170,7 +171,39 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Duration (Nights / Days)</label>
-                <input type="text" value={formData.duration} onChange={e => updateField('duration', e.target.value)} className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-xl md:rounded-2xl text-slate-900 font-black outline-none focus:border-rose-500" placeholder="e.g. 4N / 5D" />
+                <div className="space-y-2">
+                  <select
+                    value={['2N/3D', '3N/4D', '4N/5D', '5N/6D', '6N/7D', '7N/8D', '8N/9D', '9N/10D'].includes(formData.duration) ? formData.duration : 'custom'}
+                    onChange={e => {
+                      if (e.target.value === 'custom') {
+                        updateField('duration', '');
+                      } else {
+                        updateField('duration', e.target.value);
+                      }
+                    }}
+                    className="w-full p-3 md:p-4 border-2 border-slate-100 rounded-[10px] md:rounded-[10px] text-slate-900 font-black outline-none focus:border-rose-500 bg-slate-50 uppercase"
+                  >
+                    <option value="">Select Duration</option>
+                    <option value="2N/3D">2N / 3D</option>
+                    <option value="3N/4D">3N / 4D</option>
+                    <option value="4N/5D">4N / 5D</option>
+                    <option value="5N/6D">5N / 6D</option>
+                    <option value="6N/7D">6N / 7D</option>
+                    <option value="7N/8D">7N / 8D</option>
+                    <option value="8N/9D">8N / 9D</option>
+                    <option value="9N/10D">9N / 10D</option>
+                    <option value="custom">✏️ Custom / Manual</option>
+                  </select>
+                  {(!['2N/3D', '3N/4D', '4N/5D', '5N/6D', '6N/7D', '7N/8D', '8N/9D', '9N/10D'].includes(formData.duration)) && (
+                    <input
+                      type="text"
+                      value={formData.duration}
+                      onChange={e => updateField('duration', e.target.value)}
+                      className="w-full p-3 md:p-4 border-2 border-rose-200 rounded-[10px] md:rounded-[10px] text-slate-900 font-black outline-none focus:border-rose-500 bg-rose-50"
+                      placeholder="e.g. 10N / 11D or 1 Week"
+                    />
+                  )}
+                </div>
               </div>
 
             </div>
@@ -192,13 +225,13 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                   <div key={slot} className="space-y-4">
                     <div
                       onClick={() => setShowMasterImgPicker({ slot, open: true })}
-                      className={`relative aspect-video rounded-2xl md:rounded-[32px] overflow-hidden border-4 cursor-pointer group transition-all duration-500 ${formData.coverImages[slot] ? 'border-white shadow-xl' : 'border-dashed border-slate-200 bg-slate-50 hover:bg-rose-50'}`}
+                      className={`relative aspect-video rounded-[10px] md:rounded-[10px] overflow-hidden border-4 cursor-pointer group transition-all duration-500 ${formData.coverImages[slot] ? 'border-white shadow-xl' : 'border-dashed border-slate-200 bg-slate-50 hover:bg-rose-50'}`}
                     >
                       {formData.coverImages[slot] ? (
                         <>
                           <img src={formData.coverImages[slot]} alt={`Cover ${slot + 1}`} className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
-                            <span className="bg-white/20 hover:bg-white/40 backdrop-blur-md px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white border border-white/20 shadow-xl text-center">Change Photo</span>
+                            <span className="bg-white/20 hover:bg-white/40 backdrop-blur-md px-4 md:px-6 py-2 md:py-2.5 rounded-[10px] md:rounded-[10px] text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white border border-white/20 shadow-xl text-center">Change Photo</span>
                           </div>
                         </>
                       ) : (
@@ -227,7 +260,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                       <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Master Image Gallery</h3>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[3px]">Select an official agency cover photo</p>
                     </div>
-                    <button onClick={() => setShowMasterImgPicker({ ...showMasterImgPicker, open: false })} className="w-12 h-12 rounded-2xl hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all flex items-center justify-center"><X className="w-6 h-6" /></button>
+                    <button onClick={() => setShowMasterImgPicker({ ...showMasterImgPicker, open: false })} className="w-12 h-12 rounded-[10px] hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all flex items-center justify-center"><X className="w-6 h-6" /></button>
                   </div>
                   <div className="p-8 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-6 custom-scrollbar">
                     {branding.masterCoverImages?.length > 0 ? branding.masterCoverImages.map((img, idx) => (
@@ -256,16 +289,16 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
             )}
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-[4px]">Marketing Overview</label>
                 {branding.savedOverviews && branding.savedOverviews.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest">Load Template:</span>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
+                    <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest">Template:</span>
                     <select
                       onChange={(e) => {
                         if (e.target.value) updateField('overview', e.target.value);
                       }}
-                      className="text-[8px] font-black uppercase tracking-widest bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-rose-500 cursor-pointer shadow-sm"
+                      className="text-xs md:text-[8px] font-bold md:font-black uppercase tracking-wide md:tracking-widest bg-white border-2 border-slate-200 rounded-[10px] md:rounded-[10px] px-3 py-2 md:px-2 md:py-1 outline-none focus:border-rose-500 cursor-pointer shadow-sm w-full md:w-auto"
                     >
                       <option value="">-- Choose --</option>
                       {branding.savedOverviews.map((ov: any, i) => (
@@ -282,7 +315,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                   rows={6}
                   value={formData.overview}
                   onChange={e => updateField('overview', e.target.value)}
-                  className="w-full p-8 border-2 border-slate-100 rounded-[40px] outline-none focus:border-rose-500 resize-none text-slate-900 font-medium leading-relaxed bg-slate-50 shadow-inner"
+                  className="w-full p-8 border-2 border-slate-100 rounded-[10px] outline-none focus:border-rose-500 resize-none text-slate-900 font-medium leading-relaxed bg-slate-50 shadow-inner"
                   placeholder="Write a welcoming summary that captures the traveler's imagination..."
                 />
                 <div className="absolute bottom-6 right-8 text-[10px] font-black text-slate-300 uppercase tracking-widest">Professional Copywriting Recommended</div>
@@ -293,19 +326,19 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
       case 3:
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-            <div className="flex justify-between items-center border-b-2 border-slate-100 pb-6">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Day-Wise Plan</h3>
+            <div className="flex flex-row justify-between items-start md:items-center border-b-2 border-slate-100 pb-6 gap-4">
+              <div className="flex-1">
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tighter">Day-Wise Plan</h3>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[3px] mt-1">Schedule your itinerary timeline</p>
               </div>
-              <Button onClick={() => setFormData({ ...formData, days: [...formData.days, { id: Date.now().toString(), title: '', description: '', distance: '', travelTime: '' }] })} variant="secondary" size="sm" className="gap-2 rounded-2xl h-12 px-6"><Plus className="w-4 h-4" /> Add Next Day</Button>
+              <Button onClick={() => setFormData({ ...formData, days: [...formData.days, { id: Date.now().toString(), title: '', description: '', distance: '', travelTime: '' }] })} variant="secondary" size="sm" className="gap-2 rounded-[10px] h-10 md:h-12 px-4 md:px-6 shrink-0"><Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add</span> Day</Button>
             </div>
 
             <div className="space-y-6 md:space-y-10">
               {formData.days.map((day, idx) => (
                 <div key={day.id} className="group relative flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
                   <div className="flex flex-row md:flex-col items-center shrink-0 w-full md:w-24 gap-4 md:gap-0">
-                    <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-[24px] bg-slate-900 flex flex-col items-center justify-center overflow-hidden shadow-2xl border-4 border-white transition-transform group-hover:scale-110 shrink-0">
+                    <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-[14px] bg-slate-900 flex flex-col items-center justify-center overflow-hidden shadow-2xl border-4 border-white transition-transform group-hover:scale-110 shrink-0">
                       <div className="absolute top-0 left-0 right-0 h-4 md:h-6 bg-rose-600 flex items-center justify-center">
                         <Calendar className="w-2.5 h-2.5 md:w-3 md:h-3 text-white" />
                       </div>
@@ -325,13 +358,13 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                     </div>
                     {idx < formData.days.length - 1 && (
                       <>
-                        <div className="hidden md:block w-1 bg-slate-200 h-24 my-2 rounded-full"></div>
-                        <div className="md:hidden flex-1 h-1 bg-slate-100 rounded-full"></div>
+                        <div className="hidden md:block w-1 bg-slate-200 h-24 my-2 rounded-[10px]"></div>
+                        <div className="md:hidden flex-1 h-1 bg-slate-100 rounded-[10px]"></div>
                       </>
                     )}
                   </div>
 
-                  <div className="w-full flex-1 p-6 md:p-8 bg-slate-50 border-2 border-slate-100 rounded-[32px] md:rounded-[40px] relative transition-all group-hover:border-rose-200 group-hover:bg-white group-hover:shadow-xl">
+                  <div className="w-full flex-1 p-6 md:p-8 bg-slate-50 border-2 border-slate-100 rounded-[12px] md:rounded-[15px] relative transition-all group-hover:border-rose-200 group-hover:bg-white group-hover:shadow-xl">
                     <button onClick={(e) => { e.stopPropagation(); updateField('days', formData.days.filter(d => d.id !== day.id)); }} className="absolute top-4 md:top-6 right-4 md:right-8 text-slate-300 hover:text-red-500 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 z-30 p-2"><Trash2 className="w-5 h-5" /></button>
 
                     <div className="space-y-5">
@@ -344,18 +377,18 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                           <input
                             type="text"
                             placeholder="Type to search templates..."
-                            className="w-full p-2 pl-8 border border-slate-200 rounded-xl text-[10px] font-bold outline-none focus:border-rose-500 bg-white shadow-sm"
+                            className="w-full p-2 pl-8 border border-slate-200 rounded-[10px] text-[10px] font-bold outline-none focus:border-rose-500 bg-white shadow-sm"
                             onChange={(e) => setTemplateSearchTerm(e.target.value.toLowerCase())}
                           />
                           <List className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
                         </div>
-                        <div className="absolute left-0 right-0 top-full mt-2 bg-white border-2 border-slate-900 rounded-2xl shadow-2xl z-[50] max-h-48 overflow-y-auto hidden group-focus-within/search:block no-scrollbar border-t-0 p-2 space-y-1">
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white border-2 border-slate-900 rounded-[10px] shadow-2xl z-[50] max-h-48 overflow-y-auto hidden group-focus-within/search:block no-scrollbar border-t-0 p-2 space-y-1">
                           {branding.savedDayTemplates.filter(t => t.title.toLowerCase().includes(templateSearchTerm)).length > 0 ? (
                             branding.savedDayTemplates.filter(t => t.title.toLowerCase().includes(templateSearchTerm)).map(t => (
                               <div
                                 key={t.id}
                                 onMouseDown={() => loadTemplateToDay(day.id, t.id)}
-                                className="p-3 hover:bg-rose-50 rounded-xl cursor-pointer border-b border-slate-50 last:border-0"
+                                className="p-3 hover:bg-rose-50 rounded-[10px] cursor-pointer border-b border-slate-50 last:border-0"
                               >
                                 <div className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{t.title}</div>
                                 <div className="text-[8px] text-slate-400 line-clamp-1">{t.description}</div>
@@ -379,8 +412,8 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                           />
                         </div>
 
-                        <div className="flex flex-col w-full md:w-auto md:min-w-[140px]">
-                          <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Schedule Date</label>
+                        <div className="flex flex-col w-full md:w-auto md:min-w-[160px] bg-white border-2 border-slate-200 rounded-[10px] p-3 md:p-2">
+                          <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Schedule Date</label>
                           <input
                             type="date"
                             min={today}
@@ -389,7 +422,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                               const newDate = e.target.value;
                               updateField('days', formData.days.map(d => d.id === day.id ? { ...d, date: newDate } : d));
                             }}
-                            className="bg-transparent text-xs font-black text-slate-900 outline-none cursor-pointer uppercase w-full"
+                            className="bg-white text-sm md:text-xs font-bold text-slate-900 outline-none cursor-pointer w-full border-0"
                             style={{ colorScheme: 'light' }}
                           />
                         </div>
@@ -402,7 +435,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                             type="text"
                             value={day.distance || ''}
                             onChange={e => updateField('days', formData.days.map(d => d.id === day.id ? { ...d, distance: e.target.value } : d))}
-                            className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-slate-100 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500 focus:bg-white transition-all text-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-slate-100 rounded-[10px] text-slate-900 font-bold outline-none focus:border-rose-500 focus:bg-white transition-all text-sm"
                             placeholder="Distance (e.g. 50 km)"
                           />
                         </div>
@@ -412,7 +445,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                             type="text"
                             value={day.travelTime || ''}
                             onChange={e => updateField('days', formData.days.map(d => d.id === day.id ? { ...d, travelTime: e.target.value } : d))}
-                            className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-slate-100 rounded-2xl text-slate-900 font-bold outline-none focus:border-rose-500 focus:bg-white transition-all text-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-white/50 border-2 border-slate-100 rounded-[10px] text-slate-900 font-bold outline-none focus:border-rose-500 focus:bg-white transition-all text-sm"
                             placeholder="Travel Duration (e.g. 2 hours)"
                           />
                         </div>
@@ -422,7 +455,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                         rows={4}
                         value={day.description}
                         onChange={e => updateField('days', formData.days.map(d => d.id === day.id ? { ...d, description: e.target.value } : d))}
-                        className="w-full p-4 md:p-6 border-2 border-white rounded-2xl md:rounded-[24px] bg-white/50 text-slate-900 text-sm md:text-base font-medium leading-relaxed outline-none focus:border-rose-500 focus:bg-white shadow-inner transition-all"
+                        className="w-full p-4 md:p-6 border-2 border-white rounded-[10px] md:rounded-[24px] bg-white/50 text-slate-900 text-sm md:text-base font-medium leading-relaxed outline-none focus:border-rose-500 focus:bg-white shadow-inner transition-all"
                         placeholder="Describe the day's adventure, sightseeings, and highlights..."
                       />
                     </div>
@@ -440,12 +473,24 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">From Master Repository</p>
             </div>
 
+            {/* Hotel Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search hotels by name or city..."
+                className="w-full p-3 md:p-4 pl-12 border-2 border-slate-200 rounded-[10px] text-slate-900 font-bold outline-none focus:border-rose-500 bg-white shadow-sm"
+                value={hotelSearchTerm}
+                onChange={(e) => setHotelSearchTerm(e.target.value.toLowerCase())}
+              />
+              {/* <HotelIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" /> */}
+            </div>
+
             {/* Selected Hotels Summary - FIX FOR PHANTOM HOTELS */}
             {formData.selectedHotels.length > 0 && (
               <div className="bg-slate-900 p-6 md:p-8 rounded-[40px] shadow-2xl border-4 border-slate-800">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <div className="w-10 h-10 bg-rose-500 rounded-[10px] flex items-center justify-center text-white shadow-lg">
                       <HotelIcon className="w-5 h-5" />
                     </div>
                     <div>
@@ -456,8 +501,8 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {formData.selectedHotels.map(h => (
-                    <div key={h.id} className="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center gap-4 group hover:bg-white/10 transition-all">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 overflow-hidden shrink-0">
+                    <div key={h.id} className="bg-white/5 border border-white/10 p-3 rounded-[10px] flex items-center gap-4 group hover:bg-white/10 transition-all">
+                      <div className="w-10 h-10 rounded-[10px] bg-white/10 overflow-hidden shrink-0">
                         {h.images?.[0] ? <img src={h.images[0]} className="w-full h-full object-cover" alt="" /> : <HotelIcon className="w-full h-full p-2.5 text-white/20" />}
                       </div>
                       <div className="flex flex-col">
@@ -476,46 +521,52 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {masterHotels.map(hotel => {
-                const isSelected = formData.selectedHotels.some(h => h.id === hotel.id);
-                return (
-                  <div key={hotel.id}
-                    onClick={() => toggleHotelSelection(hotel)}
-                    className={`p-4 border-2 rounded-[40px] cursor-pointer transition-all flex flex-col gap-5 relative overflow-hidden group ${isSelected ? 'border-rose-500 bg-rose-50 shadow-2xl scale-[1.02]' : 'border-slate-100 bg-white hover:border-slate-300'}`}
-                  >
-                    {isSelected && (
-                      <div className="absolute top-0 right-0 bg-rose-500 text-white p-3 rounded-bl-[20px] z-10 shadow-lg">
-                        <CheckCircle2 className="w-5 h-5" />
-                      </div>
-                    )}
-
-                    <div className="h-48 rounded-[30px] bg-slate-100 overflow-hidden relative shadow-inner">
-                      {hotel.images && hotel.images[0] ? (
-                        <img src={hotel.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={hotel.name} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-12 h-12 text-slate-200" /></div>
+              {masterHotels
+                .filter(hotel => {
+                  if (!hotelSearchTerm) return true;
+                  return hotel.name.toLowerCase().includes(hotelSearchTerm) ||
+                    hotel.category.toLowerCase().includes(hotelSearchTerm);
+                })
+                .map(hotel => {
+                  const isSelected = formData.selectedHotels.some(h => h.id === hotel.id);
+                  return (
+                    <div key={hotel.id}
+                      onClick={() => toggleHotelSelection(hotel)}
+                      className={`p-4 border-2 rounded-[20px] cursor-pointer transition-all flex flex-col gap-5 relative overflow-hidden group ${isSelected ? 'border-rose-500 bg-rose-50 shadow-2xl scale-[1.02]' : 'border-slate-100 bg-white hover:border-slate-300'}`}
+                    >
+                      {isSelected && (
+                        <div className="absolute top-0 right-0 bg-rose-500 text-white p-3 rounded-bl-[20px] z-10 shadow-lg">
+                          <CheckCircle2 className="w-5 h-5" />
+                        </div>
                       )}
-                    </div>
 
-                    <div className="px-3 pb-2 flex-1 flex flex-col">
-                      <div className="flex justify-between items-start mb-3 gap-2">
-                        <h4 className="font-black text-slate-900 uppercase text-base leading-tight line-clamp-2 flex-1 group-hover:text-rose-600 transition-colors">
-                          {hotel.name}
-                        </h4>
-                        <div className="flex shrink-0 gap-0.5 pt-1">
-                          {[...Array(hotel.stars)].map((_, i) => (
-                            <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                          ))}
+                      <div className="h-48 rounded-[30px] bg-slate-100 overflow-hidden relative shadow-inner">
+                        {hotel.images && hotel.images[0] ? (
+                          <img src={hotel.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={hotel.name} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-12 h-12 text-slate-200" /></div>
+                        )}
+                      </div>
+
+                      <div className="px-3 pb-2 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-3 gap-2">
+                          <h4 className="font-black text-slate-900 uppercase text-base leading-tight line-clamp-2 flex-1 group-hover:text-rose-600 transition-colors">
+                            {hotel.name}
+                          </h4>
+                          <div className="flex shrink-0 gap-0.5 pt-1">
+                            {[...Array(hotel.stars)].map((_, i) => (
+                              <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="mt-auto flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-slate-50 p-3 rounded-[10px] border border-slate-100/50">
+                          <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span className="truncate">{hotel.category}</span>
                         </div>
                       </div>
-                      <div className="mt-auto flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-                        <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                        <span className="truncate">{hotel.category}</span>
-                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
         );
@@ -526,47 +577,47 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Total adults</label>
-                  <input type="number" min="0" value={formData.pricing.adults} onChange={e => updateField('pricing', { ...formData.pricing, adults: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
+                  <input type="number" min="0" value={formData.pricing.adults} onChange={e => updateField('pricing', { ...formData.pricing, adults: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Total child</label>
-                  <input type="number" min="0" value={formData.pricing.children} onChange={e => updateField('pricing', { ...formData.pricing, children: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
+                  <input type="number" min="0" value={formData.pricing.children} onChange={e => updateField('pricing', { ...formData.pricing, children: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Total PAX (Auto)</label>
-                  <div className="w-full bg-white/5 border-2 border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-white/50 font-black text-xl md:text-3xl cursor-not-allowed">
+                  <div className="w-full bg-white/5 border-2 border-white/10 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white/50 font-black text-xl md:text-3xl cursor-not-allowed">
                     {formData.pricing.totalPax}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Per adult price</label>
-                  <input type="text" value={formData.pricing.perAdultPrice} onChange={e => updateField('pricing', { ...formData.pricing, perAdultPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 5,000/-" />
+                  <input type="text" value={formData.pricing.perAdultPrice} onChange={e => updateField('pricing', { ...formData.pricing, perAdultPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 5,000/-" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Per child price</label>
-                  <input type="text" value={formData.pricing.perChildPrice} onChange={e => updateField('pricing', { ...formData.pricing, perChildPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 2,500/-" />
+                  <input type="text" value={formData.pricing.perChildPrice} onChange={e => updateField('pricing', { ...formData.pricing, perChildPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 2,500/-" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">No. of Rooms</label>
-                  <input type="number" min="0" value={formData.pricing.rooms} onChange={e => updateField('pricing', { ...formData.pricing, rooms: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
+                  <input type="number" min="0" value={formData.pricing.rooms} onChange={e => updateField('pricing', { ...formData.pricing, rooms: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">No. extra bed</label>
-                  <input type="number" min="0" value={formData.pricing.extraBeds} onChange={e => updateField('pricing', { ...formData.pricing, extraBeds: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
+                  <input type="number" min="0" value={formData.pricing.extraBeds} onChange={e => updateField('pricing', { ...formData.pricing, extraBeds: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Extra bed Cost</label>
-                  <input type="text" value={formData.pricing.extraBedPrice} onChange={e => updateField('pricing', { ...formData.pricing, extraBedPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 1,500/-" />
+                  <input type="text" value={formData.pricing.extraBedPrice} onChange={e => updateField('pricing', { ...formData.pricing, extraBedPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 1,500/-" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">No of CNB</label>
-                  <input type="number" min="0" value={formData.pricing.cnbCount} onChange={e => updateField('pricing', { ...formData.pricing, cnbCount: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
+                  <input type="number" min="0" value={formData.pricing.cnbCount} onChange={e => updateField('pricing', { ...formData.pricing, cnbCount: parseInt(e.target.value) || 0 })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">CNB Cost</label>
-                  <input type="text" value={formData.pricing.cnbPrice} onChange={e => updateField('pricing', { ...formData.pricing, cnbPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 1,000/-" />
+                  <input type="text" value={formData.pricing.cnbPrice} onChange={e => updateField('pricing', { ...formData.pricing, cnbPrice: e.target.value })} className="w-full bg-white/10 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:bg-white/20 transition-all" placeholder="e.g. 1,000/-" />
                 </div>
 
                 <div className="space-y-2 sm:col-span-2">
@@ -574,7 +625,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                   <select
                     value={formData.pricing.roomType}
                     onChange={e => updateField('pricing', { ...formData.pricing, roomType: e.target.value })}
-                    className="w-full bg-slate-800 border-2 border-white/20 rounded-xl md:rounded-2xl p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:border-rose-500 transition-all uppercase"
+                    className="w-full bg-slate-800 border-2 border-white/20 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-white font-black text-xl md:text-3xl outline-none focus:border-rose-500 transition-all uppercase"
                   >
                     <option value="">-- Select Master Room Type --</option>
                     {branding.roomTypes?.map(type => (
@@ -585,7 +636,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
 
                 <div className="space-y-2 sm:col-span-2 md:col-span-3">
                   <label className="text-[10px] font-black uppercase opacity-60 tracking-widest">Total price (Calculated)</label>
-                  <input type="text" value={formData.pricing.totalCost} onChange={e => updateField('pricing', { ...formData.pricing, totalCost: e.target.value })} className="w-full bg-rose-600/20 border-2 border-rose-500/40 rounded-xl md:rounded-2xl p-3 md:p-4 text-rose-100 font-black text-xl md:text-3xl outline-none focus:bg-rose-500/30 transition-all" placeholder="e.g. 45,000/-" />
+                  <input type="text" value={formData.pricing.totalCost} onChange={e => updateField('pricing', { ...formData.pricing, totalCost: e.target.value })} className="w-full bg-rose-600/20 border-2 border-rose-500/40 rounded-[10px] md:rounded-[10px] p-3 md:p-4 text-rose-100 font-black text-xl md:text-3xl outline-none focus:bg-rose-500/30 transition-all" placeholder="e.g. 45,000/-" />
                 </div>
               </div>
             </div>
@@ -596,19 +647,19 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
               </div>
               <div className="space-y-4">
                 {formData.pricing.nightBreakup.map((item, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center bg-slate-50 p-4 rounded-2xl md:rounded-3xl border-2 border-slate-100">
+                  <div key={idx} className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center bg-slate-50 p-4 rounded-[10px] md:rounded-[10px] border-2 border-slate-100">
                     <input type="text" value={item.destination} onChange={e => {
                       const nb = [...formData.pricing.nightBreakup];
                       nb[idx].destination = e.target.value;
                       updateField('pricing', { ...formData.pricing, nightBreakup: nb });
-                    }} className="flex-1 bg-white border-2 border-slate-100 p-3 md:p-4 rounded-xl md:rounded-2xl font-black text-slate-900 outline-none focus:border-rose-500 text-sm md:text-base" placeholder="Destination Name" />
+                    }} className="flex-1 bg-white border-2 border-slate-100 p-3 md:p-4 rounded-[10px] md:rounded-[10px] font-black text-slate-900 outline-none focus:border-rose-500 text-sm md:text-base" placeholder="Destination Name" />
                     <div className="flex items-center justify-between sm:justify-start gap-4">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nights</span>
                       <input type="number" value={item.nights} onChange={e => {
                         const nb = [...formData.pricing.nightBreakup];
                         nb[idx].nights = parseInt(e.target.value);
                         updateField('pricing', { ...formData.pricing, nightBreakup: nb });
-                      }} className="w-20 md:w-24 bg-white border-2 border-slate-100 p-3 md:p-4 rounded-xl md:rounded-2xl text-center font-black text-slate-900 outline-none focus:border-rose-500" />
+                      }} className="w-20 md:w-24 bg-white border-2 border-slate-100 p-3 md:p-4 rounded-[10px] md:rounded-[10px] text-center font-black text-slate-900 outline-none focus:border-rose-500" />
                       <button onClick={() => updateField('pricing', { ...formData.pricing, nightBreakup: formData.pricing.nightBreakup.filter((_, i) => i !== idx) })} className="sm:hidden text-red-500 p-2"><Trash2 className="w-5 h-5" /></button>
                     </div>
                     <button onClick={() => updateField('pricing', { ...formData.pricing, nightBreakup: formData.pricing.nightBreakup.filter((_, i) => i !== idx) })} className="hidden sm:block text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-6 h-6" /></button>
@@ -636,16 +687,16 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
                   </button>
                 </h4>
                 <div className="flex gap-2 md:gap-3">
-                  <input type="text" placeholder={`Add ${key}...`} className="flex-1 p-3 md:p-4 border-2 border-slate-100 rounded-xl md:rounded-2xl text-slate-900 font-bold bg-white outline-none focus:border-rose-500 text-xs md:text-base"
+                  <input type="text" placeholder={`Add ${key}...`} className="flex-1 p-3 md:p-4 border-2 border-slate-100 rounded-[10px] md:rounded-[10px] text-slate-900 font-bold bg-white outline-none focus:border-rose-500 text-xs md:text-base"
                     value={newEntry.type === key ? newEntry.text : ''}
                     onChange={e => setNewEntry({ type: key, text: e.target.value })}
                     onKeyDown={e => e.key === 'Enter' && addListEntry(key)}
                   />
-                  <Button onClick={() => addListEntry(key)} className="rounded-xl md:rounded-2xl shrink-0 h-12 md:h-14 px-4 md:px-6"><Plus className="w-5 h-5" /></Button>
+                  <Button onClick={() => addListEntry(key)} className="rounded-[10px] md:rounded-[10px] shrink-0 h-12 md:h-14 px-4 md:px-6"><Plus className="w-5 h-5" /></Button>
                 </div>
                 <div className="space-y-2 md:space-y-3 max-h-60 md:max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                   {formData[key].map((item, i) => (
-                    <div key={i} className="flex justify-between items-start gap-4 p-3 md:p-4 bg-white rounded-xl md:rounded-2xl border-2 border-slate-100 group shadow-sm">
+                    <div key={i} className="flex justify-between items-start gap-4 p-3 md:p-4 bg-white rounded-[10px] md:rounded-[10px] border-2 border-slate-100 group shadow-sm">
                       <span className="text-[10px] md:text-xs font-bold text-slate-700 leading-relaxed flex-1">{item}</span>
                       <button onClick={() => updateField(key, formData[key].filter((_, idx) => idx !== i))} className="opacity-100 md:opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
@@ -662,16 +713,16 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
               <div key={key} className="space-y-6 bg-slate-50 p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-2 border-slate-100">
                 <h4 className="font-black text-slate-900 uppercase tracking-[2px] md:tracking-[4px] text-[10px] md:text-xs border-b-2 border-slate-200 pb-4 capitalize">{key.replace('cancellation', 'Cancel')}</h4>
                 <div className="flex gap-2 md:gap-3">
-                  <input type="text" placeholder={`Add to ${key}...`} className="flex-1 p-3 md:p-4 border-2 border-slate-100 rounded-xl md:rounded-2xl text-slate-900 font-bold bg-white outline-none focus:border-rose-500 text-xs md:text-base"
+                  <input type="text" placeholder={`Add to ${key}...`} className="flex-1 p-3 md:p-4 border-2 border-slate-100 rounded-[10px] md:rounded-[10px] text-slate-900 font-bold bg-white outline-none focus:border-rose-500 text-xs md:text-base"
                     value={newEntry.type === key ? newEntry.text : ''}
                     onChange={e => setNewEntry({ type: key, text: e.target.value })}
                     onKeyDown={e => e.key === 'Enter' && addListEntry(key)}
                   />
-                  <Button onClick={() => addListEntry(key)} className="rounded-xl md:rounded-2xl shrink-0 h-12 md:h-14 px-4 md:px-6"><Plus className="w-5 h-5" /></Button>
+                  <Button onClick={() => addListEntry(key)} className="rounded-[10px] md:rounded-[10px] shrink-0 h-12 md:h-14 px-4 md:px-6"><Plus className="w-5 h-5" /></Button>
                 </div>
                 <div className="space-y-2 md:space-y-3 max-h-60 md:max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                   {formData[key].map((item, i) => (
-                    <div key={i} className="flex justify-between items-start gap-4 p-3 md:p-4 bg-white rounded-xl md:rounded-2xl border-2 border-slate-100 group shadow-sm">
+                    <div key={i} className="flex justify-between items-start gap-4 p-3 md:p-4 bg-white rounded-[10px] md:rounded-[10px] border-2 border-slate-100 group shadow-sm">
                       <span className="text-[9px] md:text-[10px] font-bold text-slate-600 leading-relaxed flex-1">{item}</span>
                       <button onClick={() => updateField(key, formData[key].filter((_, idx) => idx !== i))} className="opacity-100 md:opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
@@ -687,19 +738,24 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:p-8 no-print pb-32">
-      <div className="bg-white rounded-[32px] md:rounded-[60px] shadow-2xl overflow-hidden border-2 border-slate-900 w-full mx-auto">
+      <div className="bg-white rounded-[12px] md:rounded-[10px] shadow-2xl overflow-hidden border-2 border-slate-900 w-full mx-auto">
         <div className="bg-slate-900 px-6 md:px-8 lg:px-12 py-8 md:py-10 lg:py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
             <h2 className="text-2xl lg:text-4xl font-black text-white uppercase tracking-tighter">Itinerary Studio</h2>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3">
-              <span className="bg-rose-600 text-white text-[8px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">{formData.packageName || 'UNNAMED TRIP'}</span>
+              <span className="bg-rose-600 text-white text-[8px] md:text-[10px] font-black px-3 py-1 rounded-[5px] uppercase tracking-widest">{formData.packageName || 'UNNAMED TRIP'}</span>
               <span className="text-white/40 text-[8px] md:text-[10px] font-black uppercase tracking-[4px]">Step {currentStep} of {steps.length}</span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full md:w-auto shrink-0">
-            <Button variant="outline" onClick={onCancel} className="bg-white/5 text-white border-white/10 hover:bg-white/20 px-4 md:px-6 h-10 md:h-12 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest w-full sm:w-auto">Cancel</Button>
-            <Button onClick={() => onSave(formData)} className="gap-2 h-10 md:h-12 px-6 md:px-8 shadow-2xl shadow-rose-900/50 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-tighter w-full sm:w-auto whitespace-nowrap" style={{ backgroundColor: branding.primaryColor }}>
-              <Save className="w-4 h-4 md:w-5 h-5" /> Commit & Render
+          <div className="flex flex-row gap-2 md:gap-3 w-full md:w-auto shrink-0">
+            <Button variant="outline" onClick={onCancel} className="bg-white/5 text-white border-white/10 hover:bg-white/20 px-4 md:px-6 h-10 md:h-12 rounded-[5px] text-[10px] md:text-xs font-black uppercase tracking-widest w-auto sm:w-auto">
+              <span className="md:hidden"><X className="w-4 h-4" /></span>
+              <span className="hidden md:inline">Cancel</span>
+            </Button>
+            <Button onClick={() => onSave(formData)} className="gap-2 h-10 md:h-12 px-6 md:px-8 shadow-2xl shadow-rose-900/50 rounded-[5px] font-black uppercase text-[10px] md:text-xs tracking-tighter flex-1 sm:flex-none whitespace-nowrap" style={{ backgroundColor: branding.primaryColor }}>
+              <Save className="w-4 h-4 md:w-5 h-5" />
+              <span className="md:hidden">Render</span>
+              <span className="hidden md:inline">Commit & Render</span>
             </Button>
           </div>
         </div>
@@ -707,7 +763,7 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
         <div className="border-b-4 border-slate-900 bg-slate-50 px-4 md:px-6 lg:px-12 py-4 md:py-6 lg:py-8 flex items-center justify-start md:justify-center lg:justify-between overflow-x-auto gap-4 md:gap-6 lg:gap-8 no-scrollbar">
           {steps.map(step => (
             <div key={step.id} className="flex items-center gap-3 md:gap-4 shrink-0">
-              <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-sm md:text-lg transition-all duration-500 ${currentStep === step.id ? 'bg-slate-900 text-white shadow-2xl scale-110' : currentStep > step.id ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+              <div className={`w-10 h-10 md:w-10 md:h-10 rounded-[10px] md:rounded-[10px] flex items-center justify-center font-black text-sm md:text-lg transition-all duration-500 ${currentStep === step.id ? 'bg-slate-900 text-white shadow-2xl scale-110' : currentStep > step.id ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
                 {currentStep > step.id ? <CheckCircle2 className="w-5 h-5 md:w-7 md:h-7" /> : step.id}
               </div>
               <div className="flex flex-col">
@@ -723,26 +779,26 @@ export const ItineraryForm: React.FC<ItineraryFormProps> = ({ initialData, maste
           {renderStep()}
         </div>
 
-        <div className="p-6 md:p-12 bg-slate-50 border-t-4 border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-6">
-          <Button variant="outline" disabled={currentStep === 1} onClick={() => setCurrentStep(prev => prev - 1)} className="gap-3 h-14 md:h-16 px-8 md:px-10 border-2 border-slate-200 text-slate-900 hover:bg-white rounded-2xl md:rounded-3xl font-black uppercase tracking-widest w-full sm:w-auto order-2 sm:order-1">
-            <ChevronLeft className="w-5 h-5" /> Back
+        <div className="p-6 md:p-12 bg-slate-50 border-t-4 border-slate-900 flex flex-row justify-between items-center gap-4 md:gap-6">
+          <Button variant="outline" disabled={currentStep === 1} onClick={() => setCurrentStep(prev => prev - 1)} className="gap-2 md:gap-3 h-12 md:h-14 lg:h-16 px-4 md:px-8 lg:px-10 border-2 border-slate-200 text-slate-900 hover:bg-white rounded-[10px] md:rounded-[10px] lg:rounded-[10px] font-black uppercase tracking-widest flex-1 md:flex-none">
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" /> <span className="hidden sm:inline">Back</span>
           </Button>
 
           <div className="hidden lg:flex flex-col items-center">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-[6px]">System Ready</div>
-            <div className="w-64 h-3 bg-slate-200 rounded-full mt-4 overflow-hidden border-2 border-white shadow-inner">
+            <div className="w-64 h-3 bg-slate-200 rounded-[5px] mt-4 overflow-hidden border-2 border-white shadow-inner">
               <div className="h-full bg-slate-900 transition-all duration-1000 ease-in-out shadow-lg" style={{ width: `${(currentStep / steps.length) * 100}%` }}></div>
             </div>
           </div>
 
-          <div className="w-full sm:w-auto order-1 sm:order-3">
+          <div className="flex-1 md:flex-none">
             {currentStep < steps.length ? (
-              <Button onClick={() => setCurrentStep(prev => prev + 1)} className="gap-3 h-14 md:h-16 px-10 md:px-14 rounded-2xl md:rounded-3xl shadow-xl font-black uppercase tracking-widest text-white w-full sm:w-auto" style={{ backgroundColor: branding.primaryColor }}>
-                Continue <ChevronRight className="w-6 h-6" />
+              <Button onClick={() => setCurrentStep(prev => prev + 1)} className="gap-2 md:gap-3 h-12 md:h-14 lg:h-16 px-4 md:px-10 lg:px-14 rounded-[10px] md:rounded-[10px] lg:rounded-[10px] shadow-xl font-black uppercase tracking-widest text-white w-full" style={{ backgroundColor: branding.primaryColor }}>
+                <span className="hidden sm:inline">Continue</span><span className="sm:hidden">Next</span> <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
               </Button>
             ) : (
-              <Button onClick={() => onSave(formData)} className="gap-3 h-14 md:h-16 px-10 md:px-14 shadow-2xl rounded-2xl md:rounded-3xl font-black uppercase tracking-tighter text-white w-full sm:w-auto" style={{ backgroundColor: branding.primaryColor }}>
-                Finalize <CheckCircle2 className="w-6 h-6" />
+              <Button onClick={() => onSave(formData)} className="gap-2 md:gap-3 h-12 md:h-14 lg:h-16 px-4 md:px-10 lg:px-14 shadow-2xl rounded-[10px] md:rounded-[10px] lg:rounded-[10px] font-black uppercase tracking-tighter text-white w-full" style={{ backgroundColor: branding.primaryColor }}>
+                Finalize <CheckCircle2 className="w-4 h-4 md:w-6 md:h-6" />
               </Button>
             )}
           </div>
